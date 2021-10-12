@@ -29,7 +29,8 @@ import librosa
 from model import TCN, TCN_fusion, TCN_Vis_fusion, CNN_TCN, TCN_Pix_Skltn_fusion
 from myutils import data_generator, fold_generator
 import fixedgutils
-from auxil import train, evaluate, fusion_train, fusion_evaluate, str2bool, plot_learning_curve
+# from auxil import train, evaluate, fusion_train, fusion_evaluate, str2bool, plot_learning_curve
+from auxil import train, evaluate, str2bool, plot_learning_curve
 
 
 # from src.data_prep import prepare_data

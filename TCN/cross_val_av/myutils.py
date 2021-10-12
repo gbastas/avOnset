@@ -1,8 +1,5 @@
 from scipy.io import loadmat
 import sys
-sys.path.append("../../")
-# from TCN.cross_val_av.tools.beats import smooth_baf, square_baf_const
-from tools.beats import smooth_baf, square_baf_const
 import torch
 import numpy as np
 import os

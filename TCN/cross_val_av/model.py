@@ -6,7 +6,7 @@ from tcn import TemporalConvNet#, SimpleConvNet
 import torch.nn.functional as F
 import torch
 
-from compact_bilinear_pooling import CountSketch, CompactBilinearPooling
+# from compact_bilinear_pooling import CountSketch, CompactBilinearPooling
 
 class TCN_Vis_fusion(nn.Module):
 	def __init__(self, args, A_input_size, B_input_size, A_model_name, B_model_name, output_size, num_A_channels, num_B_channels, kernel_size, dropout, dilations):
@@ -509,7 +509,7 @@ class TCN_fusion(nn.Module):
 		# self.linearIndB = self.tcn_B_tutti.linear
 
 		# self.cbplayer = CompactBilinearPooling(num_A_channels[-1], num_B_channels[-1], 8000)
-		self.cbplayer = CompactBilinearPooling(num_B_channels[-1], num_B_channels[-1], 512)#.cuda()
+		# self.cbplayer = CompactBilinearPooling(num_B_channels[-1], num_B_channels[-1], 512)#.cuda()
 		self.lstm = nn.LSTM(input_size = 512, hidden_size = 512, num_layers=2) 
 		self.hidden_cell = (torch.zeros(1,1,512), 
 							torch.zeros(1,1,512))		
