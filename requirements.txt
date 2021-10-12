@@ -1,0 +1,12 @@
+matplotlib==3.3.4
+scipy==1.5.4
+numpy==1.19.5
+scikit_image==0.17.2
+opencv_python==4.5.3.56
+adabound==0.0.5
+librosa==0.8.1
+madmom==0.16.1
+Pillow==8.3.2
+scikit_learn==1.0
+skimage==0.0
+torch==1.9.1

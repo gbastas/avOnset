@@ -31,7 +31,7 @@ def crop_video_new(path_to_video_file, n_pieces, path_to_subdir, AudioDataSep):
 		os.system('ffmpeg -i out'+str(i+1)+'.mp4 -c copy -an mute-out'+str(i+1)+'.mp4')
 
 		vid_name = "VidSep_"+AudioDataSep[i].split('/')[-1].split('_',1)[1].split('.')[0]+'.mkv' # e.g. 
-		print("AAAAAAA", vid_name)
+		# print("AAAAAAA", vid_name)
 
 		os.system('ffmpeg -i mute-out'+str(i+1)+'.mp4 -i '+"'"+AudioDataSep[i]+"'"+' -c copy '+path_to_subdir+'/'+vid_name)
 		os.system('rm out'+str(i+1)+'.mp4')

@@ -13,7 +13,6 @@
 		Train, save and test visual & audio models. We do this n_fold times. Then, train, save and test fusion models. We do this n_fold times.
 '''
 
-# python -W ignore music_test.py --epochs 300 --feats melspecspectralflux
 import argparse
 import torch
 import torch.nn as nn
@@ -21,10 +20,6 @@ from torch.autograd import Variable
 import torch.optim as optim
 import sys
 import librosa
-# sys.path.append("../../")
-# from TCN.cross_val_av.model import TCN, TCN_fusion
-# from TCN.cross_val_av.myutils import data_generator, fold_generator
-# from TCN.cross_val_av.auxil import train, evaluate, fusion_train, fusion_evaluate, str2bool, plot_learning_curve
 
 from model import TCN, TCN_fusion, TCN_Vis_fusion, CNN_TCN, TCN_Pix_Skltn_fusion
 from myutils import data_generator, fold_generator
@@ -32,19 +27,15 @@ import fixedgutils
 # from auxil import train, evaluate, fusion_train, fusion_evaluate, str2bool, plot_learning_curve
 from auxil import train, evaluate, str2bool, plot_learning_curve
 
-
-# from src.data_prep import prepare_data
 import numpy as np
 import matplotlib.pyplot as plt
 from madmom.evaluation import onsets
 from madmom.features.onsets import peak_picking, OnsetPeakPickingProcessor
 import os 
-# import multiprocessing as mp
 import random
 import warnings
-import adabound
+# import adabound
 import cv2
-# from pathlib import Path
 import csv
 
 warnings.filterwarnings("ignore")
@@ -70,7 +61,7 @@ parser.add_argument('--log-interval', type=int, default=1000, metavar='N',
 parser.add_argument('--lr', type=float, default=1e-3,
 					help='initial learning rate (default: 1e-3)')
 parser.add_argument('--optim', type=str, default='Adam',
-					help='optimizer to use Adam or Adabound')
+					help='optimizer to use Adam')
 parser.add_argument('--nhid', type=int, default=256,
 					help='number of hidden units per layer (old default: 150)')
 parser.add_argument('--data', type=str, default='Nott',
@@ -79,7 +70,6 @@ parser.add_argument('--seed', type=int, default=1111)
 
 parser.add_argument('--fs', default=48000, type=int, action='store',
 					help='Global audio sampling rate to use')
-# parser.add_argument('--hop', default=512, type=int, action='store',
 parser.add_argument('--hop', default=480, type=int, action='store',
 					help='hop length')
 parser.add_argument('--w_size', default=2048, type=int, action='store',
@@ -97,16 +87,12 @@ parser.add_argument('--project_dir', type=str, default='../../', help='Path to t
 parser.add_argument('--strings', type=str2bool, default=False, help='Keep only strings (True) or or keep all instruments (False) videos')
 parser.add_argument('--visualize', type=str2bool, default= False, help='Visualize skeleton moves.')
 parser.add_argument('--poly', type=str2bool, help='Run for polyphonic (True) or monophonic (False) videos')
-# parser.add_argument('--feats', type=str, default='melspec', help="'melspec', 'chromas', 'chromas_norm', 'melspecSpectralFlux'")
 parser.add_argument('--feats', type=str, default='melspecmov_avg', help="'melspec', 'chromas', 'chromas_norm', 'melspecSpectralFlux'")
 parser.add_argument('--awgn', type=str2bool, default= False, help='.')
 parser.add_argument('--onset_window', type=float, default= 0.05, help='50 ms')
 parser.add_argument('--deriv', type=str2bool, default=False)
-# parser.add_argument('--pca', type=str2bool, default=False)
 parser.add_argument('--pca', type=int, default=0, help='num of dimensions')
 
-# parser.add_argument('--train', type=str2bool, default=False)
-# parser.add_argument('--train_fusion', type=str2bool, default=True)
 parser.add_argument('-train', action='store_true', help='')
 parser.add_argument('--n_folds', default=8, type=int)
 parser.add_argument('--cross_val', type=str2bool, default=True)
@@ -114,7 +100,6 @@ parser.add_argument('--model_dir', type=str, default='../../models/')
 parser.add_argument('--monofold', type=str2bool, default=True)
 parser.add_argument('--store_model', type=str2bool, default=True)
 
-# parser.add_argument('--train_fusion', type=str2bool, default=False)
 parser.add_argument('-train_fusion', action='store_true', help='')
 
 parser.add_argument('--freeze', type=str2bool, default=False)
@@ -140,8 +125,6 @@ Nf=args.n_folds
 if args.monofold:
 	Nf=0
 
-
-
 def run_epoch(epoch, XFolds, YFolds, TFolds, FFolds, input_type, best_F_measure, extras):
 	global imgpath
 
@@ -149,9 +132,6 @@ def run_epoch(epoch, XFolds, YFolds, TFolds, FFolds, input_type, best_F_measure,
 
 		if fold_id>Nf: continue #NOTE:
 		fig, axs = plt.subplots(len(F_test), 1, figsize=(20,10))
-
-		# with open('test_set.lst', 'w') as f:
-		# 	for fname in F_test: f.write(fname +'\n')
 
 		model_name = "TCN_"+input_type+'_'+str(fold_id)+".pt"
 		print("************ Train_"+input_type+'_'+str(fold_id)+" ************")
@@ -291,7 +271,6 @@ def run_fusion_final_test(args, XAFolds, YAFolds, TAFolds, XBFolds, FFolds, extr
 				if args.multiTest:
 					model.multiTest = True
 					model.multiLoss = False
-				# print('ZZZZZZ', model.multiLoss)
 
 				print("************ Test Fusion_"+str(fold_id)+" ************")
 				# tloss, eval_objects = fusion_evaluate(0, X_A_test, X_B_test, Y_test, T_test, args, extras[fold_id]['model'], fold_id, axs=axs, name='Test', FNames=F_test)
@@ -487,15 +466,9 @@ if __name__ == "__main__":
 			if args.modality in ['Visual', 'AudioVisual']: visual_model.cuda()
 			if args.modality in ['Audio', 'AudioVisual']: audio_model.cuda()
 
-		# TODO: write it better
-		if args.optim == 'Adabound':
-			if args.modality in ["HandROIs", "Body-Hand"]: pixel_optimizer = adabound.AdaBound(pixel_model.parameters(), lr=1e-3, final_lr=0.1)
-			if args.modality in ['Visual', 'AudioVisual']: visual_optimizer = adabound.AdaBound(visual_model.parameters(), lr=1e-3, final_lr=0.1)
-			if args.modality in ['Audio', 'AudioVisual']: audio_optimizer = adabound.AdaBound(audio_model.parameters(), lr=1e-3, final_lr=0.1)
-		else:
-			if args.modality in ["HandROIs", "Body-Hand"]: pixel_optimizer = getattr(optim, args.optim)(pixel_model.parameters(), lr=lr)#, weight_decay=1e-5)
-			if args.modality in ['Visual', 'AudioVisual']: visual_optimizer = getattr(optim, args.optim)(visual_model.parameters(), lr=lr)
-			if args.modality in ['Audio', 'AudioVisual']: audio_optimizer = getattr(optim, args.optim)(audio_model.parameters(), lr=lr)
+		if args.modality in ["HandROIs", "Body-Hand"]: pixel_optimizer = getattr(optim, args.optim)(pixel_model.parameters(), lr=lr)#, weight_decay=1e-5)
+		if args.modality in ['Visual', 'AudioVisual']: visual_optimizer = getattr(optim, args.optim)(visual_model.parameters(), lr=lr)
+		if args.modality in ['Audio', 'AudioVisual']: audio_optimizer = getattr(optim, args.optim)(audio_model.parameters(), lr=lr)
 
 
 		if args.modality in ["HandROIs", "Body-Hand"]: extras_pixel += [{'model':pixel_model, 'lr':lr, 'optimizer':pixel_optimizer}]
@@ -591,80 +564,3 @@ if __name__ == "__main__":
 	# run_fusion_final_test(args, XVisFolds, YVisFolds, TVisFolds, XAudFolds, FFolds, extras_fusion) 
 	run_fusion_final_test(args, XVisFolds, YVisFolds, TVisFolds, XPixFolds, FFolds, extras_fusion) 
 
-
-
-
-	# if args.train_fusion:
-
-	# 	# FUSION MODEL TRAINING
-	# 	train_fusion_scores, valid_fusion_scores = [], []
-	# 	for ep in range(1, args.fusion_epochs):
-	# 		for fold_id, (VisFolds, AudFolds) in enumerate( zip(fold_generator(args, XVisFolds, YVisFolds, TVisFolds, FFolds), fold_generator(args, XAudFolds, YAudFolds, TAudFolds, FFolds)) ):	
-	# 			if fold_id>Nf: continue # NOTE:
-				
-	# 			X_visual_train, X_visual_valid, X_visual_test, Y_train, Y_valid, Y_test, T_train, T_valid, T_test, F_test = VisFolds
-	# 			X_audio_train, X_audio_valid, X_audio_test, _, _, _, _, _, _, _ = AudFolds	
-	# 			fig, axs = plt.subplots(10, 1, figsize=(20,10)) # TODO: do it properly
-
-	# 			model_name = args.model_dir+"TCN_fusion_"+str(fold_id)+".pt"
-
-	# 			print ('Epoch: '+str(ep))
-	# 			print("************ Train_Fusion_"+str(fold_id)+" ************")
-	# 			eval_objects = fusion_train(ep, X_visual_train, X_audio_train, Y_train, T_train, args, extras_fusion[fold_id])
-	# 			evalu = str(onsets.OnsetMeanEvaluation(eval_objects)).split()
-	# 			precision, recall, F_measure = evalu[13], evalu[15], float(evalu[17])
-	# 			print("Training: Precision", precision, "Recall", recall, "F_measure", F_measure)
-	# 			train_fusion_scores += [F_measure]
-
-	# 			vloss, eval_objects = fusion_evaluate(ep, X_visual_valid, X_audio_valid, Y_valid, T_valid, args, extras_fusion[fold_id]['model'], 'Fusion', fold_id, fig=fig, axs=axs, name='Validation')
-	# 			evalu = str(onsets.OnsetMeanEvaluation(eval_objects)).split()
-	# 			precision, recall, F_measure = evalu[13], evalu[15], float(evalu[17])
-	# 			print("Validation: Precision", precision, "Recall", recall, "F_measure", F_measure)
-	# 			valid_fusion_scores += [F_measure]
-
-	# 			# Save best model so far
-	# 			# TODO: try vloss criterions
-	# 			if F_measure >= best_F_measure[fold_id] and args.store_model:
-	# 				model = extras_fusion[fold_id]['model']
-	# 				with open(model_name, "wb") as f:
-	# 					torch.save(model, f)
-	# 				best_F_measure[fold_id] = F_measure
-
-	# 			print("************ Test_Fusion_"+str(fold_id)+" ************")
-	# 			tloss, eval_objects = fusion_evaluate(ep, X_visual_test, X_audio_test, Y_test, T_test, args, extras_fusion[fold_id]['model'], 'Fusion', fold_id, fig=fig, axs=axs, name='Test', FNames=F_test)
-	# 			evalu = str(onsets.OnsetMeanEvaluation(eval_objects)).split()
-	# 			precision, recall, F_measure = evalu[13], evalu[15], float(evalu[17])
-	# 			print("Test:\t Precision", precision, "\tRecall", recall, "\tF_measure", F_measure)
-	# 			print()
-
-	# 			fig.suptitle("TCN_Fusion_"+str(fold_id)+": Precision"+str(precision)+"\tRecall"+str(recall)+str("\tF_measure")+str(F_measure), fontsize=16)	
-	# 			# fig.savefig('./img/img_fusion_'+str(ep)+'_'+str(fold_id)+'.png')
-	# 			plt.close(fig)			
-
-
-	# 	# Get Learning Curves
-	# 	plt = plot_learning_curve(train_fusion_scores, valid_fusion_scores, range(1, len(train_fusion_scores)+1))
-	# 	# plt.show()
-	# 	plt.savefig(imgpath+'learning_curve.png')
-	# 	plt.close(fig)
-
-	# # RUN FUSION FINAL TEST
-	# for fold_id, (VisFolds, AudFolds) in enumerate( zip(fold_generator(args, XVisFolds, YVisFolds, TVisFolds, FFolds), fold_generator(args, XAudFolds, YAudFolds, TAudFolds, FFolds)) ):
-	# 	if fold_id>Nf: continue #NOTE:
-	# 	X_visual_train, X_visual_valid, X_visual_test, Y_train, Y_valid, Y_test, T_train, T_valid, T_test, F_test = VisFolds
-	# 	X_audio_train, X_audio_valid, X_audio_test, _, _, _, _, _, _, _ = AudFolds			
-	# 	model_name = args.model_dir+"TCN_fusion_"+str(fold_id)+".pt"
-
-	# 	fig, axs = plt.subplots(len(F_test), 1, figsize=(20,10))
-	# 	print('-' * 89)
-	# 	model = torch.load(open(model_name, "rb"))
-	# 	extras = {'model':model, 'lr':lr, 'optimizer':extras_fusion[fold_id]['optimizer']}
-
-	# 	tloss, eval_objects = fusion_evaluate(None, X_visual_test, X_audio_test, Y_test, T_test, args, extras_fusion[fold_id], 'Fusion', fold_id, fig=fig, axs=axs, name='Test', FNames=F_test)
-
-	# 	evalu = str(onsets.OnsetMeanEvaluation(eval_objects)).split()
-	# 	precision, recall, F_measure = evalu[13], evalu[15], evalu[17]
-	# 	print("Final Fusion Test - Fold:"+str(fold_id)+" \t Precision", precision, "\tRecall", recall, "\tF_measure", F_measure)
-
-	# 	fig.suptitle("TCN_Fusion: Precision"+str(precision)+"\tRecall"+str(recall)+str("\tF_measure")+str(F_measure), fontsize=16)	
-	# 	fig.savefig(imgpath+'img_fusion.png')	

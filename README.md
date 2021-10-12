@@ -2,10 +2,11 @@
 
 ## Set environment
 
+```
 conda create -n visonset python=3.6.12
 conda activate visonset
 pip install -r requirements.txt
-
+```
 ## Dataset download and skeleton representations
 
 First you need to download the whole URMP dataset (this might take some time...):
@@ -34,7 +35,12 @@ python cop_videos.py --pathToData path/to/data
 ``` -->
 
 
-## How to run the model
+## How to run the model (Under Construction))
+
+```
+cd src/
+python data_prep_av_bulk.py
+```
 
 ```
 cd TCN/cross_val_av/
