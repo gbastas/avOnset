@@ -135,180 +135,12 @@ class CNN(nn.Module):
 			# nn.MaxPool2d(kernel_size=3, stride=3))
 
 
-# class CNN(nn.Module):
-# 	def __init__(self):
-# 		super(CNN, self).__init__()
-# 		cnn_dropout = 0.0
-
-# 		# self.downsample1 = nn.Sequential(
-# 		# 	nn.Conv2d(3, 4, kernel_size=1, stride=1, padding=0), 
-# 		# 	nn.BatchNorm2d(4),
-# 		# 	nn.MaxPool2d(kernel_size=3, stride=3))
-# 		# self.downsample2 = nn.Sequential(
-# 		# 	nn.Conv2d(4, 8, kernel_size=1, stride=1, padding=0), 
-# 		# 	nn.BatchNorm2d(8),
-# 		# 	nn.MaxPool2d(kernel_size=3, stride=3))
-# 		# self.downsample3 = nn.Sequential(
-# 		# 	nn.Conv2d(8, 8, kernel_size=1, stride=1, padding=0), 
-# 		# 	nn.BatchNorm2d(8),
-# 		# 	nn.MaxPool2d(kernel_size=3, stride=3))
-# 		# self.downsample4 = nn.Sequential(
-# 		# 	nn.Conv2d(8, 8, kernel_size=1, stride=1, padding=0),
-# 		# 	nn.BatchNorm2d(8),
-# 		# 	nn.MaxPool2d(kernel_size=2, stride=2))
-
-# 		self.layer1 = nn.Sequential(
-# 			nn.Conv2d(3, 4, kernel_size=5, stride=1, padding=2), 
-# 			nn.BatchNorm2d(4),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			# nn.MaxPool2d(kernel_size=3, stride=3))
-# 			nn.MaxPool2d(kernel_size=4, stride=4))
-# 		self.layer2 = nn.Sequential(
-# 			nn.Conv2d(4, 8, kernel_size=5, stride=1, padding=2),
-# 			nn.BatchNorm2d(8),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=4, stride=4))
-# 		self.layer3 = nn.Sequential(
-# 			nn.Conv2d(8, 8, kernel_size=5, stride=1, padding=2),
-# 			nn.BatchNorm2d(8),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=4, stride=4))
-# 		# self.layer4 = nn.Sequential(
-# 		# 	nn.Conv2d(8, 8, kernel_size=5, stride=1, padding=2),
-# 		# 	nn.BatchNorm2d(8),
-# 		# 	nn.ReLU(),
-# 		# 	nn.Dropout(cnn_dropout),
-# 		# 	nn.MaxPool2d(kernel_size=2, stride=2))
-
-
-# class CNN(nn.Module):
-# 	def __init__(self):
-# 		super(CNN, self).__init__()
-# 		cnn_dropout = 0.0
-# 		self.downsample1 = nn.Sequential(
-# 			nn.Conv2d(3, 4, kernel_size=1, stride=1, padding=0), 
-# 			nn.BatchNorm2d(4),
-# 			nn.MaxPool2d(kernel_size=3, stride=3))		
-# 		self.downsample2 = nn.Sequential(
-# 			nn.Conv2d(4, 8, kernel_size=1, stride=1, padding=0), 
-# 			nn.BatchNorm2d(8),
-# 			nn.MaxPool2d(kernel_size=3, stride=3))
-# 		self.downsample3 = nn.Sequential(
-# 			nn.Conv2d(8, 8, kernel_size=1, stride=1, padding=0), 
-# 			nn.BatchNorm2d(8),
-# 			nn.MaxPool2d(kernel_size=3, stride=3))
-
-# 		self.layer1 = nn.Sequential(
-# 			nn.Conv2d(3, 4, kernel_size=3, stride=1, padding=1), 
-# 			nn.BatchNorm2d(4),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=3, stride=3))
-# 		self.layer2 = nn.Sequential(
-# 			nn.Conv2d(4, 8, kernel_size=3, stride=1, padding=1),
-# 			nn.BatchNorm2d(8),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=3, stride=3)) 
-# 		self.layer3 = nn.Sequential(
-# 			nn.Conv2d(8, 8, kernel_size=3, stride=1, padding=1),
-# 			nn.BatchNorm2d(8),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=3, stride=3))
-
-# class CNN(nn.Module):
-# 	def __init__(self):
-# 		super(CNN, self).__init__()
-# 		cnn_dropout = 0.0
-# 		self.downsample1 = nn.Sequential(
-# 			nn.Conv2d(3, 4, kernel_size=1, stride=1, padding=0), 
-# 			nn.BatchNorm2d(4),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-# 		self.downsample2 = nn.Sequential(
-# 			nn.Conv2d(4, 8, kernel_size=1, stride=1, padding=0), 
-# 			nn.BatchNorm2d(8),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-# 		self.downsample3 = nn.Sequential(
-# 			nn.Conv2d(8, 8, kernel_size=1, stride=1, padding=0), 
-# 			nn.BatchNorm2d(8),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-
-# 		self.layer1 = nn.Sequential(
-# 			nn.Conv2d(3, 4, kernel_size=5, stride=1, padding=1), 
-# 			nn.BatchNorm2d(4),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-# 		self.layer2 = nn.Sequential(
-# 			nn.Conv2d(4, 8, kernel_size=3, stride=1, padding=1),
-# 			nn.BatchNorm2d(8),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-# 		self.layer3 = nn.Sequential(
-# 			nn.Conv2d(8, 8, kernel_size=3, stride=1, padding=1),
-# 			nn.BatchNorm2d(8),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-
-
-# class CNN(nn.Module):
-# 	def __init__(self):
-# 		super(CNN, self).__init__()
-# 		cnn_dropout = 0.0
-# 		self.downsample1 = nn.Sequential(
-# 			nn.Conv2d(3, 4, kernel_size=1, stride=1, padding=0), 
-# 			nn.BatchNorm2d(4),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-# 		self.downsample2 = nn.Sequential(
-# 			nn.Conv2d(4, 8, kernel_size=1, stride=1, padding=0), 
-# 			nn.BatchNorm2d(8),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-# 		self.downsample3 = nn.Sequential(
-# 			nn.Conv2d(8, 8, kernel_size=1, stride=1, padding=0), 
-# 			nn.BatchNorm2d(8),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-
-# 		self.layer1 = nn.Sequential(
-# 			nn.Conv2d(3, 4, kernel_size=5, stride=1, padding=2), 
-# 			nn.BatchNorm2d(4),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-# 		self.layer2 = nn.Sequential(
-# 			nn.Conv2d(4, 8, kernel_size=5, stride=1, padding=2),
-# 			nn.BatchNorm2d(8),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-# 		self.layer3 = nn.Sequential(
-# 			nn.Conv2d(8, 8, kernel_size=5, stride=1, padding=2),
-# 			nn.BatchNorm2d(8),
-# 			nn.ReLU(),
-# 			nn.Dropout(cnn_dropout),
-# 			nn.MaxPool2d(kernel_size=2, stride=2))		
-
 	def forward(self, x):
-		# residual = self.downsample1(x)
 		out = self.layer1(x)
-		# out += residual
 
-		# residual = self.downsample2(out)
 		out = self.layer2(out)
-		# out += residual
 
-		# residual = self.downsample3(out)
 		out = self.layer3(out)
-		# out += residual
-
-		# residual = self.downsample4(out)
-		# out = self.layer4(out)
-		# out += residual
 
 		return out
 
@@ -359,48 +191,14 @@ class CNN_TCN(nn.Module): # pixel input
 		return self.softmax(out_seq)	
 
 
-		# x = x.cuda()
-		# # x = torch.cat([x, x[-1].unsqueeze(0)], dim=0)
-		# # img1 = x[1:].transpose(1,3)
-		# # img2 = x[:-1].transpose(1,3)	
-		# # img = img1-img2
-
-		# imgs = x.transpose(1,3)	
-
-		# imgs = imgs/255.0
-
-		# out = self.cnn(imgs)
-
-		# out = out.squeeze(0)
-		# out = out.reshape(out.shape[0], -1) # make it one-dimensional
-
-		# # print('out: ', out.size())
-
-		# out_seq = out
-		# # part_seq += out.cpu().detach()
-		# # out_seq = torch.stack(part_seq).cuda()
-
-		# out_seq = out_seq.unsqueeze(0)
-		# out_seq = self.tcn(out_seq.transpose(1, 2)).transpose(1, 2)
-		# out_seq = self.linear(out_seq).double()
-		# return self.softmax(out_seq)	
-
-
-
 class TCN(nn.Module):
 	def __init__(self, input_size, output_size, num_channels, kernel_size, dropout, dilations):
 		super(TCN, self).__init__()
 		# print("input_size", input_size)
 		if dilations:
-			# self.tcn = TemporalConvNet(input_size, num_channels, kernel_size, dropout=dropout)
 			self.tcn = TemporalConvNet(input_size, num_channels, kernel_size, dropout=dropout)
 		else:
 			self.tcn = SimpleConvNet(input_size, num_channels, kernel_size, dropout=dropout)
-
-		# self.mask = TCNmask(input_size, output_size, num_channels, kernel_size, dropout, dilations)
-		# self.conv1x1 = nn.Conv1d(in_channels=num_channels[-1], out_channels=num_channels[-1], kernel_size=1, stride=1, padding=0)
-		# self.conv1x1_2 = nn.Conv1d(in_channels=num_channels[-1], out_channels=output_size, kernel_size=1, stride=1, padding=0, dilation=1)
-		# self.relu = nn.ReLU()
 
 		self.linear = nn.Linear(num_channels[-1], output_size)
 		self.softmax = nn.Softmax(dim=2)

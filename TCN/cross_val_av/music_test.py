@@ -87,7 +87,7 @@ parser.add_argument('--project_dir', type=str, default='../../', help='Path to t
 parser.add_argument('--strings', type=str2bool, default=False, help='Keep only strings (True) or or keep all instruments (False) videos')
 parser.add_argument('--visualize', type=str2bool, default= False, help='Visualize skeleton moves.')
 parser.add_argument('--poly', type=str2bool, help='Run for polyphonic (True) or monophonic (False) videos')
-parser.add_argument('--feats', type=str, default='melspecmov_avg', help="'melspec', 'chromas', 'chromas_norm', 'melspecSpectralFlux'")
+parser.add_argument('--feats_dir', type=str, default='extracted_features')# , help="'melspec', 'chromas', 'chromas_norm', 'melspecSpectralFlux'")
 parser.add_argument('--awgn', type=str2bool, default= False, help='.')
 parser.add_argument('--onset_window', type=float, default= 0.05, help='50 ms')
 parser.add_argument('--deriv', type=str2bool, default=False)
@@ -352,7 +352,7 @@ if __name__ == "__main__":
 	# 	os.mkdir(args.model_dir)
 
 	imgpath = args.project_dir+ 'imgs/'
-	args.project_dir += 'PrepdData/' + args.feats + '/' #NOTE important to handle e.g. DATAchormas etc.
+	args.project_dir += 'PrepdData/' + args.feats_dir + '/' #NOTE important to handle e.g. DATAchormas etc.
 	# args.project_dir += args.feats + '/' #NOTE important to handle e.g. DATAchormas etc.
 	# args.project_dir += 'PrepdData/' + args.feats + '_badimg/' #NOTE important to handle e.g. DATAchormas etc.
 	

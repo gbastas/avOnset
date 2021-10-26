@@ -223,8 +223,6 @@ def prepare_data(args):
 							hand_rois = utils.get_opt_flow(hand_rois)
 
 			n_audio_frames = audio_feats.shape[1]
-			n_visual_frames = visual_feats.shape[1]
-
 
 			# Visualize ROIs
 			if args.visualize:
@@ -249,7 +247,7 @@ def prepare_data(args):
 				
 				# Create baf (e.g. [[0.],[0.],[1.],[0.],...]) array
 				onset_frames = librosa.core.time_to_frames(onset_times, sr=args.fs, n_fft=args.w_size, hop_length=args.hop)
-				baf = np.array( [np.zeros( audio_feats.shape[1] )])
+				baf = np.array( [np.zeros( n_audio_frames )])
 				baf[0, onset_frames] = 1.
 				baf = np.swapaxes(baf, 0, 1)
 
@@ -327,7 +325,7 @@ if __name__ == '__main__':
 	parser.add_argument('--w_size', default=W_SIZE, type=int, action='store',
 						help='window size')
 
-	parser.add_argument('--pathToStore', type=str, default='../extracted_features/', help='')
+	parser.add_argument('--pathToStore', type=str, default='../PrepdData/extracted_features/', help='')
 	parser.add_argument('--pathToSkeletons', type=str, default='../OpenPoseData_all_hand/', help='Path to the openpose direcotry')
 	parser.add_argument('--pathToURMP', type=str, default='../', help='Path to the openpose direcotry')
 

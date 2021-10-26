@@ -38,10 +38,11 @@ python cop_videos.py --pathToData path/to/data
 ## Feature extraction
 
 ```
+mkdir PrepdData
 cd src/
-python data_prep_av_bulk.py --pathToStore ../extracted_features --pathToURMP {path/to/URMPdataset} --audio_feats melspec -HandROIs -optflow
+python data_prep_av_bulk.py --pathToStore ../prepdData/extracted_features --pathToURMP {path/to/URMPdataset} --audio_feats melspec -HandROIs -optflow
 ```
-If you don't want to bother with HandROIs (and their optical flow) don't use the last two arguments. The script will run a lot faster.
+If you don't want to bother with HandROIs (and their optical flow represntation) don't use the last two arguments. The script will run a lot faster.
 
 ## How to run the model (Under Construction))
 
