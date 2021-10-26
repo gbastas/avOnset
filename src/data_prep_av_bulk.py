@@ -17,7 +17,8 @@ import cv2
 import librosa
 from PIL import Image, ImageDraw
 from skimage.transform import rescale, resize, downscale_local_mean
-from skimage import util
+# from skimage import util
+import skimage
 from shutil import copyfile
 sys.path.append("../")
 import copy 
@@ -29,6 +30,8 @@ import utils
 # np.set_printoptions(threshold=sys.maxsize)
 import math 
 
+
+
 FS = 48000
 # HOP = 512 
 HOP = 480 # 10 ms
@@ -38,14 +41,14 @@ W_SIZE = 2048 # 42.7 ms
 def prepare_data(args):
 
 	# Create path_ot_store
-	path_to_store = args.pathToStore+args.method
-	if args.log:
-		path_to_store += 'log'
-	if args.spectralflux:
-		path_to_store += 'spectralflux'
-	if args.mov_avg:
-		path_to_store += 'mov_avg'
-	path_to_store += '/'
+	path_to_store = args.pathToStore+'/'#+args.audio_feats
+	# if args.log:
+	# 	path_to_store += 'log'
+	# if args.spectralflux:
+	# 	path_to_store += 'spectralflux'
+	# if args.mov_avg:
+	# 	path_to_store += 'mov_avg'
+	# path_to_store += '/'
 
 	if not args.visualize:
 		try:
@@ -114,7 +117,7 @@ def prepare_data(args):
 
 			###### FILTER OUT #######
 			visual_feats = utils.eliminate_abrupt_keypoint_shifts(visual_feats)
-			visual_feats = eliminate_low_confidence_keypoints(conf, visual_feats) # discard points with confidence value  <0.2
+			visual_feats = utils.eliminate_low_confidence_keypoints(conf, visual_feats) # discard points with confidence value  <0.2
 			visual_feats = utils.interpolate_keypoints(visual_feats)
 
 			hand_feats = utils.eliminate_abrupt_keypoint_shifts(hand_feats)
@@ -133,7 +136,7 @@ def prepare_data(args):
 
 				print("hand_feats_mu", hand_feats_mu.shape, hand_feats.shape)
 
-				hand_feats = centered_moving_average(hand_feats, n=3)
+				hand_feats = utils.centered_moving_average(hand_feats, n=3)
 
 			Z = utils.get_derivatives(visual_feats).T # speed martix
 			Z_all.append(Z)
@@ -150,7 +153,7 @@ def prepare_data(args):
 			perfID = subdir.split('_',2)[1] # e.g. '1_fl_03_Dance'
 
 			# Find the proper URMP dir in order to get the right files containing onset locations, TODO: fix paths
-			# urmp_path = "/media/gbastas/New Volume/users/grigoris/Datasets/uc3/Dataset/"
+			# urmp_path = img_as_u
 			urmp_path = args.pathToURMP
 			for find_dir in sorted(os.listdir(urmp_path)):
 				if not(find_dir.startswith('.')) and (dir_keyword in find_dir):
@@ -185,12 +188,12 @@ def prepare_data(args):
 							librosa.output.write_wav('signal_noise_out_'+str(SNRdb)+'.wav', audio_data_mix, sr) 	# save sample
 
 					# Extract audio features of our choice using librosa
-					if args.method=='chromas':
+					if args.audio_feats=='chromas':
 						audio_feats = librosa.feature.chroma_stft(audio_data_mix, sr=args.fs, n_fft=args.w_size, hop_length=args.hop)
-					elif args.method=='chromas_norm':
+					elif args.audio_feats=='chromas_norm':
 						audio_feats = librosa.feature.chroma_stft(audio_data_mix, sr=args.fs, n_fft=args.w_size, hop_length=args.hop)
 						audio_feats = librosa.util.normalize(audio_feats, norm=2., axis=1)
-					elif args.method=='melspec':
+					elif args.audio_feats=='melspec':
 						audio_feats = librosa.feature.melspectrogram(audio_data_mix, sr=args.fs, n_mels=40, n_fft=args.w_size, hop_length=args.hop)
 					# Compute log-power
 					if args.log:
@@ -212,7 +215,7 @@ def prepare_data(args):
 							px=200
 						hand_rois = utils.get_roi(path_to_mkv_file, hand_feats_mu, px=px) # (duration, 100, 100, 3)		
 						if px==200:
-							hand_rois = [util.img_as_ubyte(resize(img, (100,100,3))) for img in hand_rois] # rescaled and uint8 
+							hand_rois = [skimage.util.img_as_ubyte(resize(img, (100,100,3))) for img in hand_rois] # rescaled and uint8 
 						hand_rois = np.array(hand_rois)
 
 						if args.optflow:
@@ -324,21 +327,21 @@ if __name__ == '__main__':
 	parser.add_argument('--w_size', default=W_SIZE, type=int, action='store',
 						help='window size')
 
-	parser.add_argument('--pathToStore', type=str, default='../', help='')
+	parser.add_argument('--pathToStore', type=str, default='../extracted_features/', help='')
 	parser.add_argument('--pathToSkeletons', type=str, default='../OpenPoseData_all_hand/', help='Path to the openpose direcotry')
 	parser.add_argument('--pathToURMP', type=str, default='../', help='Path to the openpose direcotry')
 
-	parser.add_argument('--method', type=str, default='melspec', help='')
-	parser.add_argument('--poly', default=False, type=str2bool, help='Run for polyphonic (True) or monophonic (False) videos')
+	parser.add_argument('--audio_feats', type=str, default='melspec', help='')
+	# parser.add_argument('--poly', default=False, type=str2bool, help='Run for polyphonic (True) or monophonic (False) videos')
 	parser.add_argument('--strings', type=str2bool, default=True, help='Keep only strings (True) or or keep all instruments (False) videos')
 	parser.add_argument('--no_strings', type=str2bool, default=False, help='Keep only strings (True) or or keep all instruments (False) videos')
 	parser.add_argument('--visualize', type=str2bool, default= False, help='Visualize skeleton moves.')
-	parser.add_argument('--spectralflux', type=str2bool, default= False, help='Visualize skeleton moves.')
-	parser.add_argument('--log', type=str2bool, default= False)
+	parser.add_argument('--spectralflux', type=str2bool, default= False, help='')
+	parser.add_argument('--log', type=str2bool, default=False)
 	parser.add_argument('--mov_avg', type=str2bool, default= True, help='.')
 	parser.add_argument('--awgn', type=str2bool, default= False, help='.')
-	parser.add_argument('--HandROIs', type=str2bool, default= True, help='.')
-	parser.add_argument('-optflow', action='store_true') # i.e. if -rm is used as argument then args.rmdirs==
+	parser.add_argument('-HandROIs', action='store_true', help='To extract also features from ROIs')
+	parser.add_argument('-optflow', action='store_true', help="Don't just extract standard pixel vaues, instead compute optical flow features") 
 
 	args = parser.parse_args()
 

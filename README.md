@@ -35,12 +35,16 @@ python cop_videos.py --pathToData path/to/data
 ``` -->
 
 
-## How to run the model (Under Construction))
+## Feature extraction
 
 ```
 cd src/
-python data_prep_av_bulk.py
+python data_prep_av_bulk.py --pathToStore ../extracted_features --pathToURMP {path/to/URMPdataset} --audio_feats melspec -HandROIs -optflow
 ```
+If you don't want to bother with HandROIs (and their optical flow) don't use the last two arguments. The script will run a lot faster.
+
+## How to run the model (Under Construction))
+
 
 ```
 cd TCN/cross_val_av/
