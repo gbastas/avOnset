@@ -54,7 +54,6 @@ def data_generator(args, input_data):
 			baf[locations-2] = 1
 
 		except IndexError as e:
-			# print('MyWarning: exact frame ' + str(locations[-1,]) + ', ' + e)
 			print('MyWarning: exact frame ' + str(locations[-1,]) + ', ' + str(e))
 			pass
 
