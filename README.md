@@ -31,7 +31,7 @@ python path\to\avOnset\src\run_multiple_openpose.py --pathToData path\to\dataset
 
 Then run:
 ```
-python cop_videos.py --pathToData path/to/data
+python crop_videos.py --pathToData path/to/data
 ``` -->
 
 
@@ -48,6 +48,7 @@ If you don't want to bother with HandROIs (and their optical flow represntation)
 
 
 ```
+mkdir models
 cd TCN/cross_val_av/
 python music_test.py
 ```
