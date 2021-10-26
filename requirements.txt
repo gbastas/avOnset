@@ -7,6 +7,4 @@ adabound==0.0.5
 librosa==0.8.1
 madmom==0.16.1
 Pillow==8.3.2
-scikit_learn==1.0
-skimage==0.0
 torch==1.9.1
