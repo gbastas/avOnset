@@ -42,7 +42,7 @@ mkdir PrepdData
 cd src/
 python data_prep_av_bulk.py --pathToStore ../prepdData/extracted_features --pathToURMP {path/to/URMPdataset} --audio_feats melspec -HandROIs -optflow
 ```
-If you don't want to bother with HandROIs (and their optical flow represntation) don't use the last two arguments. The script will run a lot faster.
+If you don't want to bother with HandROIs (and their optical flow represntation) don't use the last two arguments. The script will run a lot faster and the space occupied in the disc will be smaller.
 
 ## How to run the model (Under Construction))
 
