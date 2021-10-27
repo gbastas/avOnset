@@ -79,7 +79,3 @@ python music_test.py --modality Body-Hand --monofold False -multiTest
 ```
 python music_test.py --epochs 200 --modality Audio --monofold False -rescaled {-train}
 ```
-<!-- **AudioVisual** (Under Construction) [use it after training models for the separate modalities]:
-```
-python music_test.py --epochs 200 --modality AudioVisual --monofold False -rescaled {-train}
-``` -->
