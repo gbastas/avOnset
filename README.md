@@ -50,8 +50,14 @@ If you don't want to bother with HandROIs (and their optical flow represntation)
 ```
 mkdir models
 mkdir imgs
+mkdir results
 cd TCN/cross_val_av/
 '''
+
+
+For each different input configuration, you can choose to train some TCN networks (one for each cross-validation fold set) by using the argument -train. The models will be stored to ```./models``` dir.
+
+
 
 HandROIs:
 '''
@@ -66,4 +72,10 @@ Fusion:
 python music_test.py --epochs 10 --modality Body-Hand --monofold False {-train_fusion}
 '''
 Insights:
+```
 python music_test.py --modality Body-Hand --monofold False -multiTest
+```
+Audio:
+```
+python music_test.py --epochs 200 --modality Audio --monofold False -train
+```

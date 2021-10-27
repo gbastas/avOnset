@@ -82,7 +82,8 @@ def evaluate(ep, X_data, Y_data, T_data, args, model, input_type, fold_id, axs, 
 			
 			lossObj = nn.BCELoss() # _greg_
 
-			y = torch.cat([y, y[-1].unsqueeze(0)], dim=0) # NOTE
+			if args.modality == 'Visual':
+				y = torch.cat([y, y[-1].unsqueeze(0)], dim=0) 
 			loss = lossObj(output, y.unsqueeze(0).double())
 
 			total_loss += loss.item()
@@ -142,7 +143,8 @@ def train(ep, X_train, Y_train, T_train, args, extras, axs, FNames=[]):
 
 		lossObj = nn.BCELoss() # _greg_
 
-		y = torch.cat([y, y[-1].unsqueeze(0)], dim=0) # NOTE
+		if args.modality == 'Visual':
+			y = torch.cat([y, y[-1].unsqueeze(0)], dim=0) 
 		loss = lossObj(output, y.unsqueeze(0).double())
 		total_loss += loss.item() # NOTE ?
 		count += output.size(0)

@@ -221,7 +221,7 @@ def run_fusion_final_test(args, XAFolds, YAFolds, TAFolds, XBFolds, FFolds, extr
 	print('**************** Run Final Test *****************')
 
 	p_m, r_m, F_m = 0, 0, 0
-	with open('out'+args.modality+'_'+args.fusion_strat+'.csv', 'w', newline='') as csvfile:
+	with open('../../results/out'+args.modality+'_'+args.fusion_strat+'.csv', 'w', newline='') as csvfile:
 		writer = csv.writer(csvfile, delimiter=' ')
 		writer.writerow(["Precision", "Recall", "F_measure"])
 
@@ -304,7 +304,7 @@ def run_final_test(args, XFolds, YFolds, TFolds, FFolds, optimizer, input_type):
 	print('**************** Run Final Test *****************')
 
 	p_m, r_m, F_m = 0, 0, 0
-	with open('out'+input_type+'.csv', 'w', newline='') as csvfile:
+	with open('../../results/out'+input_type+'.csv', 'w', newline='') as csvfile:
 		writer = csv.writer(csvfile, delimiter=' ')
 		writer.writerow(["Precision", "Recall", "F_measure"])
 
@@ -522,6 +522,8 @@ if __name__ == "__main__":
 
 
 	# FUSION MODEL INITIALIZATION
+	if args.modality not in ['Body-Hand', 'AudioVisual']:
+		exit(0)
 	extras_fusion=[]
 	for fold_id in range(args.n_folds):
 		if fold_id>Nf: continue #NOTE:
@@ -536,7 +538,7 @@ if __name__ == "__main__":
 
 		if args.modality == 'Body-Hand':
 			fusion_model = TCN_fusion(args, visual_input_size, None, A_model_name, B_model_name, output_size, n_visual_channels, n_hand_channels, kernel_size, dropout=args.dropout, dilations=args.dilations)
-		else:
+		elif args.modality == 'AudioVisual':
 			fusion_model = TCN_fusion(args, visual_input_size, audio_input_size, A_model_name, B_model_name, output_size, n_visual_channels, n_audio_channels, kernel_size, dropout=args.dropout, dilations=args.dilations)
 
 		# TCN_Pix_Skltn_fusion(args, visual_input_size, visual_model_name, pixel_model_name, output_size, n_visual_channels, n_hand_channels, kernel_size, dropout=args.dropout, dilations=args.dilations)
@@ -555,7 +557,7 @@ if __name__ == "__main__":
 			if args.modality == 'Body-Hand':
 				run_fusion_epoch(ep, XVisFolds, YVisFolds, TVisFolds, XPixFolds, FFolds, args.modality, best_visual_F_measure, extras_fusion)
 			else:
-				run_fusion_epoch(ep, XVisFolds, YVisFolds, TVisFolds, XAudFolds, FFolds, 'AudioVisual', best_visual_F_measure, extras_fusion)
+				# run_fusion_epoch(ep, XVisFolds, YVisFolds, TVisFolds, XAudFolds, FFolds, 'AudioVisual', best_visual_F_measure, extras_fusion)
 				run_fusion_epoch(ep, XVisFolds, YAudFolds, TAudFolds, XAudFolds, FFolds, 'AudioVisual', best_visual_F_measure, extras_fusion)
 
 	# if args.multiTest:
