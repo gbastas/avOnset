@@ -84,4 +84,9 @@ python music_test.py --epochs 200 --modality Audio --monofold False -rescaled {-
 For audio onset detection (trained on URMP string performances), click on **Browse** button and upload a ```.wav``` file. If you click on **Submit** the audio wavefrom appears.
 Then click on **Audio Onset Detect** and the predected onsets will be visualized on the waveform.
 
+(Video demo under construction)
+<!-- Upload a one-instrument recorded video performance (.mkv or .mp4). A waveform and a video should appear.
+Then upload a compressed (.tar.gz) dir containing a dir named "video" that includes all the extracted skeletons from OpenPose in .json form.
+Click "Audio/Video Onset Dection" to visualize predicted onsets from the audio/video-based pre-trained model. -->
+
 https://apps.ilsp.gr:5006/onsets/
