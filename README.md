@@ -83,4 +83,5 @@ python music_test.py --epochs 200 --modality Audio --monofold False -rescaled {-
 
 For audio onset detection (trained on URMP string performances), clicl on **Browse** button and upload a ```.wav``` file. If you click on **Submit** the audio wavefrom appears.
 Then click on **Audio Onset Detect** and the predected onsets will be visualized on the waveform.
+
 https://apps.ilsp.gr:5006/onsets/
