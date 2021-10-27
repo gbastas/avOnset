@@ -51,5 +51,19 @@ If you don't want to bother with HandROIs (and their optical flow represntation)
 mkdir models
 mkdir imgs
 cd TCN/cross_val_av/
-python music_test.py
-```
+'''
+
+HandROIs:
+'''
+python music_test.py --epochs 100 --modality HandROIs --monofold False {-train}
+'''
+Visual:
+'''
+python music_test.py --epochs 200 --modality Visual --monofold False {-train}
+'''
+Fusion:
+'''
+python music_test.py --epochs 10 --modality Body-Hand --monofold False {-train_fusion}
+'''
+Insights:
+python music_test.py --modality Body-Hand --monofold False -multiTest
