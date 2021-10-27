@@ -176,6 +176,319 @@ def train(ep, X_train, Y_train, T_train, args, extras, axs, FNames=[]):
 	return EvalObjects
 
 
+def fusion_evaluate(ep, X_visual_data, X_audio_data, Y_data, T_data, args, model, fold_id, axs=None, name='Eval', FNames=[], model_b=''):
+	if model_b: # that is if fusion_strat=="activations"
+		model_a = model
+	model.eval()
+	eval_idx_list = np.arange(len(X_visual_data), dtype="int32")
+	total_loss = 0.0
+	count = 0
+	EvalObjects = []
+	n=0
+	total_orRc = 0
+	total_andRc = 0
+	with torch.no_grad():
+		for idx in eval_idx_list:
+
+
+
+			if args.vnva and FNames[idx].split('_')[1] not in ['vn','va']:
+				continue
+
+
+			if args.vn and FNames[idx].split('_')[1] not in ['vn']: 
+				continue
+
+			n+=1 # counter
+
+			x1, x2, y = Variable(X_visual_data[idx], requires_grad=True), Variable(X_audio_data[idx], requires_grad=True), Variable(Y_data[idx], requires_grad=False) # _greg_
+			if args.cuda:
+				x1, x2, y = x1.cuda(), x2.cuda(), y.cuda()
+
+			if model_b: # that is if fusion_strat=="activations"
+				# output_body, output_hand = model_a(x1.unsqueeze(0)), model_b(x2.unsqueeze(0))	
+				output_body, output_hand = model_a(x1.unsqueeze(0)), model_b(x2)	
+				output = output_body # that's just a trick
+			else:
+				if args.multiLoss or args.multiTest:
+					# output, output_body, output_hand = model(x1.unsqueeze(0), x2.unsqueeze(0))
+					x2 = torch.cat([x2, x2[-1].unsqueeze(0)], dim=0) # NOTE: for optflow
+					output, output_body, output_hand = model(x1.unsqueeze(0), x2)
+				else:
+					# output = model(x1.unsqueeze(0), x2.unsqueeze(0))
+					x2 = torch.cat([x2, x2[-1].unsqueeze(0)], dim=0) # NOTE: for optflow
+					output = model(x1.unsqueeze(0), x2)
+
+			lossObj = nn.BCELoss() # _greg_
+			# y = torch.cat([y, y[-1].unsquzeeze(0)], dim=0) # NOTE
+			loss = lossObj(output, y.unsqueeze(0).double())				
+
+			if args.multiLoss or args.multiTest:
+				loss_body = lossObj(output_body, y.unsqueeze(0).double())
+				loss_hand = lossObj(output_hand, y.unsqueeze(0).double())
+				loss = loss + loss_body + loss_hand
+
+			total_loss += loss.item()
+			count += output.size(0)
+
+			# EVALUATE
+			if args.fusion_strat == 'activations':
+				o_a = output_body.squeeze(0).cpu().detach()
+				o_b = output_hand.squeeze(0).cpu().detach()
+				o_b = torch.cat([o_b, o_b[-1,:].unsqueeze(0)], dim=0) # NOTE: for optflow
+
+				###### MAX ######
+				# # print(o_a.size(), o_b.size())
+				# cat = torch.stack([o_a[:,0], o_b[:,0]]) 
+				# # print(cat.size())
+				# o = torch.max(cat, dim=0)[0]
+				# # o  = (o_a[:,0] + o_b[:,0])/2
+				# if not args.rescaled:
+				# 	# oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
+				# 	# oframes = peak_picking(activations=o[0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
+				# 	oframes = peak_picking(activations=o.numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
+				# 	otimes = librosa.core.samples_to_time(oframes, sr=29.97) # predicted onest times
+				# else:
+				# 	# oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
+				# 	oframes = peak_picking(activations=o.numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
+				# 	otimes = librosa.core.frames_to_time(oframes, sr=args.fs, hop_length=args.hop)
+
+				###### COMBINE ########
+				o_b = (o_a + o_b)/2
+				if not args.rescaled:
+					oframes_a = peak_picking(activations=o_a[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
+					otimes_a = librosa.core.samples_to_time(oframes_a, sr=29.97) # predicted onest times
+					oframes_b = peak_picking(activations=o_b[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
+					otimes_b = librosa.core.samples_to_time(oframes_b, sr=29.97) # predicted onest times
+				else:
+					oframes_a = peak_picking(activations=o_a[:,0].numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
+					# otimes_a = librosa.core.frames_to_time(oframes_a, sr=args.fs, n_fft=args.w_size, hop_length=args.hop)
+					otimes_a = librosa.core.frames_to_time(oframes_a, sr=args.fs, hop_length=args.hop)
+					oframes_b = peak_picking(activations=o_b[:,0].numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
+					# otimes_b = librosa.core.frames_to_time(oframes_b, sr=args.fs, n_fft=args.w_size, hop_length=args.hop)
+					otimes_b = librosa.core.frames_to_time(oframes_b, sr=args.fs, hop_length=args.hop)
+
+				# Merge body (ta) and hand (tb) onset times (give priority to body)
+				otimes=[]
+				i, j, b = 0, 0, 0
+				while 2+2==4:
+					ta = otimes_a[i]
+					tb = otimes_b[j]
+					if ta<=tb:
+						otimes.append(ta)
+						i+=1
+					elif ta>tb:
+						j+=1
+						# if ta-tb > 10.2: # filter out 
+						if ta-tb > 1: # filter out 
+							otimes.append(tb)
+							b+=1
+					if j>=len(otimes_b) and i<=len(otimes_a):
+						otimes += list(otimes_a[i:])
+						break
+					if i>=len(otimes_a):# and j>=len(otimes_b):
+						break
+
+				print(b, b/i, i , len(otimes_a))
+
+			else: # STANDARD OUTPUT EVALUATION
+				o = output.squeeze(0).cpu().detach()
+				
+				if not args.rescaled:
+					oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
+					otimes = librosa.core.samples_to_time(oframes, sr=29.97) # predicted onest times
+				else:
+					oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
+					otimes = librosa.core.frames_to_time(oframes, sr=args.fs, hop_length=args.hop)
+
+			y = y.cpu().detach()
+			
+			annotations=T_data[idx]
+			EvalObjects.append( onsets.OnsetEvaluation(otimes, annotations, window=args.onset_window) )
+
+			# VISUALIZE
+			if 'Test' in name: # _greg_
+				if args.multiTest:
+					o_a = output_body.squeeze(0).cpu().detach()
+					o_b = output_hand.squeeze(0).cpu().detach()	
+
+					# print(o_a)
+					# print(o_b)
+
+					oframes = peak_picking(activations=o_a[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
+					otimes_a = librosa.core.samples_to_time(oframes, sr=29.97) # predicted onest times
+					
+					oframes = peak_picking(activations=o_b[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
+					otimes_b = librosa.core.samples_to_time(oframes, sr=29.97) # predicted onest times
+
+					# print(otimes_a)
+					# print(otimes_b)
+
+					A, tpA, fpA, _, fnA, errorsA = my_onset_evaluation(otimes_a, annotations)
+					B, tpB, fpB, _, fnB, errorsB = my_onset_evaluation(otimes_b, annotations)
+
+					evalu = str(onsets.OnsetEvaluation(otimes_a, annotations, window=args.onset_window)).split()
+					precisionA, recallA, F_measureA = evalu[9], evalu[11], evalu[13]
+
+					evalu = str(onsets.OnsetEvaluation(otimes_b, annotations, window=args.onset_window)).split()
+					precisionB, recallB, F_measureB = evalu[9], evalu[11], evalu[13]
+					print(FNames[idx])
+					print("Pr", precisionA, " ", precisionB) 		
+					print("Rc", recallA, " ", recallB)
+					print("Fm", F_measureA, " ", F_measureB)
+					print("tp",len(tpA),'\t',len(tpB))
+					# print("tp",len(tpA)/len(A),'\t',len(tpB)/len(A))
+					# print("fn",len(fnA)/len(A),'\t',len(fnB)/len(A))
+					with open('./insights/'+FNames[idx], 'w') as f:
+						f.write('Skeleton\tPixel\n')
+						f.write('\n')
+						f.write("Pr "+ precisionA+ " "+ precisionB+'\n') 	
+						f.write("Rc "+ recallA+ " "+ recallB+'\n')
+						f.write("Fm "+ F_measureA+ " "+ F_measureB+'\n')
+						f.write('\n')
+						f.write('tp:\n')
+						f.write(str(len(tpA))+'\t'+str(len(tpB))+'\n')
+						f.write('\n')
+						f.write('fn:\n')
+						f.write(str(len(fnA))+'\t'+str(len(fnB))+'\n')
+						f.write('\n')
+						cor, cand = 0, 0
+						for i, j in zip(A, B):
+							logor = int(i or j)
+							logand= int(i and j)
+							# print(logor, logand)
+							# string = str(int(i))+'\t'+str(int(j))+'\n'
+							string = str(int(i))+'\t'+str(int(j))+'\t'+str(logor)+'\t'+str(logand)+'\n'
+							if logor:  cor += 1
+							if logand: cand += 1
+							f.write(string)
+
+						orRc = cor/len(A)
+						andRc = cand/len(A)
+						f.write('\n')
+						f.write('orTp: '+str(cor))
+						f.write('andTp: '+str(cand))
+						f.write('orRc: '+str(orRc))
+						f.write('andRc: '+str(andRc))
+
+					print('orTp:',logor)
+					print('andTp:',logor)
+					print('orRc:',orRc)
+					print('andRc:',andRc)
+					print()
+
+					total_andRc += andRc
+					total_orRc  += orRc
+
+					y = y.cpu().detach() 
+					# print(o_a.size)
+					# axs[idx].plot(o_a[:4000,0], alpha=0.5)
+					# axs[idx].plot(o_b[:4000,0], alpha=0.7)
+					# axs[idx].plot(y[:4000,0], alpha=0.3)
+					axs[idx].plot(o_a[1000:3000,0], alpha=0.5)
+					axs[idx].plot(o_b[1000:3000,0], alpha=0.5)
+					axs[idx].plot(y[1000:3000,0], alpha=0.3)
+
+					axs[idx].set_ylabel(FNames[idx], fontsize=6)
+				else:
+					o = output.cpu().detach()
+					y = y.cpu().detach()
+					axs[idx].plot(o[0,:4000,0])
+					axs[idx].plot(y[:4000,0], alpha=0.5)
+					axs[idx].set_ylabel(FNames[idx], fontsize=6)
+
+
+		if args.multiTest:
+			MorRecall = round(total_orRc/n,3)
+			MandRecall = round(total_andRc/n,3)
+			print('Mean orRecall:', MorRecall)
+			print('Mean andRecall:', MandRecall)
+			print()
+			with open('res'+args.modality+'_'+args.fusion_strat+'.csv', 'a', newline='') as csvfile: 
+				writer = csv.writer(csvfile, delimiter='\t')
+				# writer.writerow(["Mean orRecall", "Mean andRecall"])
+				writer.writerow([str(MorRecall), str(MandRecall)])
+
+		eval_loss = total_loss / count
+		# print(name + " loss: {:.5f}".format(eval_loss))
+		return eval_loss, EvalObjects
+
+
+def fusion_train(ep, X_visual_train, X_audio_train, Y_train, T_train, FNames, args, extras):
+
+	# print ('epoch='+str(ep))
+	model, lr, optimizer = extras['model'], extras['lr'], extras['optimizer']
+	model.train()
+	total_loss = 0
+	count = 0
+	tp=0
+	EvalObjects=[]
+	for idx in range(len(X_visual_train)):
+
+		# print(FNames)
+		if args.vnva and FNames[idx].split('_')[1] not in ['vn','va']: 
+			continue
+
+		if args.vn and FNames[idx].split('_')[1] not in ['vn']: 
+			continue
+
+
+		x1, x2, y = Variable(X_visual_train[idx], requires_grad=True), Variable(X_audio_train[idx], requires_grad=True), Variable(Y_train[idx], requires_grad=False) # _greg_
+		if args.cuda:
+			x1, x2, y = x1.cuda(), x2.cuda(), y.cuda()
+
+		optimizer.zero_grad()
+		if args.multiLoss:
+			# output, output_body, output_hand = model(x1.unsqueeze(0), x2.unsqueeze(0))
+			x2 = torch.cat([x2, x2[-1].unsqueeze(0)], dim=0) # NOTE: for optflow
+			# print(x1.size(), x2.size())
+			output, output_body, output_hand = model(x1.unsqueeze(0), x2)
+		else:
+			# output = model(x1.unsqueeze(0), x2.unsqueeze(0))
+			x2 = torch.cat([x2, x2[-1].unsqueeze(0)], dim=0) # NOTE: for optflow
+			output = model(x1.unsqueeze(0), x2)
+
+		lossObj = nn.BCELoss() # _greg_
+		# print('AAAA', output.size(), y.size())
+		# y = torch.cat([y, y[-1].unsqueeze(0)], dim=0) # NOTE
+		loss = lossObj(output, y.unsqueeze(0).double())
+		if args.multiLoss:# or args.multiTest:
+			loss_body = lossObj(output_body, y.unsqueeze(0).double())
+			loss_hand = lossObj(output_hand, y.unsqueeze(0).double())
+			loss = loss + loss_body + loss_hand
+
+		total_loss += loss.item() # NOTE: ?
+		count += output.size(0)
+
+		if args.clip > 0:
+			torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
+
+		loss.backward()
+		optimizer.step()
+		if idx > 0 and idx % args.log_interval == 0:
+			cur_loss = total_loss / count
+			print("Epoch {:2d} | lr {:.5f} | loss {:.5f}".format(ep, lr, cur_loss))
+			total_loss = 0.0
+			count = 0
+
+		# EVALUATE
+		o = output.squeeze(0).cpu().detach()
+		y = y.cpu().detach()
+
+		if not args.rescaled:
+			oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
+			otimes = librosa.core.samples_to_time(oframes, sr=29.97) # predicted onest times
+		else:
+			oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
+			otimes = librosa.core.frames_to_time(oframes, sr=args.fs, hop_length=args.hop)
+
+		ground_truth=T_train[idx]
+
+		EvalObjects.append( onsets.OnsetEvaluation(otimes, ground_truth, window=args.onset_window) )
+
+	return EvalObjects
+
+
 # # onset evaluation function (madmom variant)
 # WINDOW=0.05 # __greg__
 # def my_onset_evaluation(detections, annotations, window=WINDOW):
@@ -298,317 +611,3 @@ def train(ep, X_train, Y_train, T_train, args, extras, axs, FNames=[]):
 # 	# convert to numpy arrays and return them
 # 	return np.array(my), np.array(tp), np.array(fp), tn, np.array(fn), np.array(errors)
 # 	# return np.array(my)
-
-
-# def fusion_evaluate(ep, X_visual_data, X_audio_data, Y_data, T_data, args, model, fold_id, axs=None, name='Eval', FNames=[], model_b=''):
-# 	if model_b: # that is if fusion_strat=="activations"
-# 		model_a = model
-# 	model.eval()
-# 	eval_idx_list = np.arange(len(X_visual_data), dtype="int32")
-# 	total_loss = 0.0
-# 	count = 0
-# 	EvalObjects = []
-# 	n=0
-# 	total_orRc = 0
-# 	total_andRc = 0
-# 	with torch.no_grad():
-# 		for idx in eval_idx_list:
-
-
-
-# 			if args.vnva and FNames[idx].split('_')[1] not in ['vn','va']:
-# 				continue
-
-
-# 			if args.vn and FNames[idx].split('_')[1] not in ['vn']: 
-# 				continue
-
-# 			n+=1 # counter
-
-# 			x1, x2, y = Variable(X_visual_data[idx], requires_grad=True), Variable(X_audio_data[idx], requires_grad=True), Variable(Y_data[idx], requires_grad=False) # _greg_
-# 			if args.cuda:
-# 				x1, x2, y = x1.cuda(), x2.cuda(), y.cuda()
-
-# 			if model_b: # that is if fusion_strat=="activations"
-# 				# output_body, output_hand = model_a(x1.unsqueeze(0)), model_b(x2.unsqueeze(0))	
-# 				output_body, output_hand = model_a(x1.unsqueeze(0)), model_b(x2)	
-# 				output = output_body # that's just a trick
-# 			else:
-# 				if args.multiLoss or args.multiTest:
-# 					# output, output_body, output_hand = model(x1.unsqueeze(0), x2.unsqueeze(0))
-# 					x2 = torch.cat([x2, x2[-1].unsqueeze(0)], dim=0) # NOTE: for optflow
-# 					output, output_body, output_hand = model(x1.unsqueeze(0), x2)
-# 				else:
-# 					# output = model(x1.unsqueeze(0), x2.unsqueeze(0))
-# 					x2 = torch.cat([x2, x2[-1].unsqueeze(0)], dim=0) # NOTE: for optflow
-# 					output = model(x1.unsqueeze(0), x2)
-
-# 			lossObj = nn.BCELoss() # _greg_
-# 			# y = torch.cat([y, y[-1].unsquzeeze(0)], dim=0) # NOTE
-# 			loss = lossObj(output, y.unsqueeze(0).double())				
-
-# 			if args.multiLoss or args.multiTest:
-# 				loss_body = lossObj(output_body, y.unsqueeze(0).double())
-# 				loss_hand = lossObj(output_hand, y.unsqueeze(0).double())
-# 				loss = loss + loss_body + loss_hand
-
-# 			total_loss += loss.item()
-# 			count += output.size(0)
-
-# 			# EVALUATE
-# 			if args.fusion_strat == 'activations':
-# 				o_a = output_body.squeeze(0).cpu().detach()
-# 				o_b = output_hand.squeeze(0).cpu().detach()
-# 				o_b = torch.cat([o_b, o_b[-1,:].unsqueeze(0)], dim=0) # NOTE: for optflow
-
-# 				###### MAX ######
-# 				# # print(o_a.size(), o_b.size())
-# 				# cat = torch.stack([o_a[:,0], o_b[:,0]]) 
-# 				# # print(cat.size())
-# 				# o = torch.max(cat, dim=0)[0]
-# 				# # o  = (o_a[:,0] + o_b[:,0])/2
-# 				# if not args.rescaled:
-# 				# 	# oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
-# 				# 	# oframes = peak_picking(activations=o[0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
-# 				# 	oframes = peak_picking(activations=o.numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
-# 				# 	otimes = librosa.core.samples_to_time(oframes, sr=29.97) # predicted onest times
-# 				# else:
-# 				# 	# oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
-# 				# 	oframes = peak_picking(activations=o.numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
-# 				# 	otimes = librosa.core.frames_to_time(oframes, sr=args.fs, hop_length=args.hop)
-
-# 				###### COMBINE ########
-# 				o_b = (o_a + o_b)/2
-# 				if not args.rescaled:
-# 					oframes_a = peak_picking(activations=o_a[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
-# 					otimes_a = librosa.core.samples_to_time(oframes_a, sr=29.97) # predicted onest times
-# 					oframes_b = peak_picking(activations=o_b[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
-# 					otimes_b = librosa.core.samples_to_time(oframes_b, sr=29.97) # predicted onest times
-# 				else:
-# 					oframes_a = peak_picking(activations=o_a[:,0].numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
-# 					# otimes_a = librosa.core.frames_to_time(oframes_a, sr=args.fs, n_fft=args.w_size, hop_length=args.hop)
-# 					otimes_a = librosa.core.frames_to_time(oframes_a, sr=args.fs, hop_length=args.hop)
-# 					oframes_b = peak_picking(activations=o_b[:,0].numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
-# 					# otimes_b = librosa.core.frames_to_time(oframes_b, sr=args.fs, n_fft=args.w_size, hop_length=args.hop)
-# 					otimes_b = librosa.core.frames_to_time(oframes_b, sr=args.fs, hop_length=args.hop)
-
-# 				# Merge body (ta) and hand (tb) onset times (give priority to body)
-# 				otimes=[]
-# 				i, j, b = 0, 0, 0
-# 				while 2+2==4:
-# 					ta = otimes_a[i]
-# 					tb = otimes_b[j]
-# 					if ta<=tb:
-# 						otimes.append(ta)
-# 						i+=1
-# 					elif ta>tb:
-# 						j+=1
-# 						# if ta-tb > 10.2: # filter out 
-# 						if ta-tb > 1: # filter out 
-# 							otimes.append(tb)
-# 							b+=1
-# 					if j>=len(otimes_b) and i<=len(otimes_a):
-# 						otimes += list(otimes_a[i:])
-# 						break
-# 					if i>=len(otimes_a):# and j>=len(otimes_b):
-# 						break
-
-# 				print(b, b/i, i , len(otimes_a))
-
-# 			else: # STANDARD OUTPUT EVALUATION
-# 				o = output.squeeze(0).cpu().detach()
-				
-# 				if not args.rescaled:
-# 					oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
-# 					otimes = librosa.core.samples_to_time(oframes, sr=29.97) # predicted onest times
-# 				else:
-# 					oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
-# 					otimes = librosa.core.frames_to_time(oframes, sr=args.fs, hop_length=args.hop)
-
-# 			y = y.cpu().detach()
-			
-# 			annotations=T_data[idx]
-# 			EvalObjects.append( onsets.OnsetEvaluation(otimes, annotations, window=args.onset_window) )
-
-# 			# VISUALIZE
-# 			if 'Test' in name: # _greg_
-# 				if args.multiTest:
-# 					o_a = output_body.squeeze(0).cpu().detach()
-# 					o_b = output_hand.squeeze(0).cpu().detach()	
-
-# 					# print(o_a)
-# 					# print(o_b)
-
-# 					oframes = peak_picking(activations=o_a[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
-# 					otimes_a = librosa.core.samples_to_time(oframes, sr=29.97) # predicted onest times
-					
-# 					oframes = peak_picking(activations=o_b[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
-# 					otimes_b = librosa.core.samples_to_time(oframes, sr=29.97) # predicted onest times
-
-# 					# print(otimes_a)
-# 					# print(otimes_b)
-
-# 					A, tpA, fpA, _, fnA, errorsA = my_onset_evaluation(otimes_a, annotations)
-# 					B, tpB, fpB, _, fnB, errorsB = my_onset_evaluation(otimes_b, annotations)
-
-# 					evalu = str(onsets.OnsetEvaluation(otimes_a, annotations, window=args.onset_window)).split()
-# 					precisionA, recallA, F_measureA = evalu[9], evalu[11], evalu[13]
-
-# 					evalu = str(onsets.OnsetEvaluation(otimes_b, annotations, window=args.onset_window)).split()
-# 					precisionB, recallB, F_measureB = evalu[9], evalu[11], evalu[13]
-# 					print(FNames[idx])
-# 					print("Pr", precisionA, " ", precisionB) 		
-# 					print("Rc", recallA, " ", recallB)
-# 					print("Fm", F_measureA, " ", F_measureB)
-# 					print("tp",len(tpA),'\t',len(tpB))
-# 					# print("tp",len(tpA)/len(A),'\t',len(tpB)/len(A))
-# 					# print("fn",len(fnA)/len(A),'\t',len(fnB)/len(A))
-# 					with open('./insights/'+FNames[idx], 'w') as f:
-# 						f.write('Skeleton\tPixel\n')
-# 						f.write('\n')
-# 						f.write("Pr "+ precisionA+ " "+ precisionB+'\n') 	
-# 						f.write("Rc "+ recallA+ " "+ recallB+'\n')
-# 						f.write("Fm "+ F_measureA+ " "+ F_measureB+'\n')
-# 						f.write('\n')
-# 						f.write('tp:\n')
-# 						f.write(str(len(tpA))+'\t'+str(len(tpB))+'\n')
-# 						f.write('\n')
-# 						f.write('fn:\n')
-# 						f.write(str(len(fnA))+'\t'+str(len(fnB))+'\n')
-# 						f.write('\n')
-# 						cor, cand = 0, 0
-# 						for i, j in zip(A, B):
-# 							logor = int(i or j)
-# 							logand= int(i and j)
-# 							# print(logor, logand)
-# 							# string = str(int(i))+'\t'+str(int(j))+'\n'
-# 							string = str(int(i))+'\t'+str(int(j))+'\t'+str(logor)+'\t'+str(logand)+'\n'
-# 							if logor:  cor += 1
-# 							if logand: cand += 1
-# 							f.write(string)
-
-# 						orRc = cor/len(A)
-# 						andRc = cand/len(A)
-# 						f.write('\n')
-# 						f.write('orTp: '+str(cor))
-# 						f.write('andTp: '+str(cand))
-# 						f.write('orRc: '+str(orRc))
-# 						f.write('andRc: '+str(andRc))
-
-# 					print('orTp:',logor)
-# 					print('andTp:',logor)
-# 					print('orRc:',orRc)
-# 					print('andRc:',andRc)
-# 					print()
-
-# 					total_andRc += andRc
-# 					total_orRc  += orRc
-
-# 					y = y.cpu().detach() 
-# 					# print(o_a.size)
-# 					# axs[idx].plot(o_a[:4000,0], alpha=0.5)
-# 					# axs[idx].plot(o_b[:4000,0], alpha=0.7)
-# 					# axs[idx].plot(y[:4000,0], alpha=0.3)
-# 					axs[idx].plot(o_a[1000:3000,0], alpha=0.5)
-# 					axs[idx].plot(o_b[1000:3000,0], alpha=0.5)
-# 					axs[idx].plot(y[1000:3000,0], alpha=0.3)
-
-# 					axs[idx].set_ylabel(FNames[idx], fontsize=6)
-# 				else:
-# 					o = output.cpu().detach()
-# 					y = y.cpu().detach()
-# 					axs[idx].plot(o[0,:4000,0])
-# 					axs[idx].plot(y[:4000,0], alpha=0.5)
-# 					axs[idx].set_ylabel(FNames[idx], fontsize=6)
-
-
-# 		if args.multiTest:
-# 			MorRecall = round(total_orRc/n,3)
-# 			MandRecall = round(total_andRc/n,3)
-# 			print('Mean orRecall:', MorRecall)
-# 			print('Mean andRecall:', MandRecall)
-# 			print()
-# 			with open('res'+args.modality+'_'+args.fusion_strat+'.csv', 'a', newline='') as csvfile: 
-# 				writer = csv.writer(csvfile, delimiter='\t')
-# 				# writer.writerow(["Mean orRecall", "Mean andRecall"])
-# 				writer.writerow([str(MorRecall), str(MandRecall)])
-
-# 		eval_loss = total_loss / count
-# 		# print(name + " loss: {:.5f}".format(eval_loss))
-# 		return eval_loss, EvalObjects
-
-
-# def fusion_train(ep, X_visual_train, X_audio_train, Y_train, T_train, FNames, args, extras):
-
-# 	# print ('epoch='+str(ep))
-# 	model, lr, optimizer = extras['model'], extras['lr'], extras['optimizer']
-# 	model.train()
-# 	total_loss = 0
-# 	count = 0
-# 	tp=0
-# 	EvalObjects=[]
-# 	for idx in range(len(X_visual_train)):
-
-# 		# print(FNames)
-# 		if args.vnva and FNames[idx].split('_')[1] not in ['vn','va']: 
-# 			continue
-
-# 		if args.vn and FNames[idx].split('_')[1] not in ['vn']: 
-# 			continue
-
-
-# 		x1, x2, y = Variable(X_visual_train[idx], requires_grad=True), Variable(X_audio_train[idx], requires_grad=True), Variable(Y_train[idx], requires_grad=False) # _greg_
-# 		if args.cuda:
-# 			x1, x2, y = x1.cuda(), x2.cuda(), y.cuda()
-
-# 		optimizer.zero_grad()
-# 		if args.multiLoss:
-# 			# output, output_body, output_hand = model(x1.unsqueeze(0), x2.unsqueeze(0))
-# 			x2 = torch.cat([x2, x2[-1].unsqueeze(0)], dim=0) # NOTE: for optflow
-# 			# print(x1.size(), x2.size())
-# 			output, output_body, output_hand = model(x1.unsqueeze(0), x2)
-# 		else:
-# 			# output = model(x1.unsqueeze(0), x2.unsqueeze(0))
-# 			x2 = torch.cat([x2, x2[-1].unsqueeze(0)], dim=0) # NOTE: for optflow
-# 			output = model(x1.unsqueeze(0), x2)
-
-# 		lossObj = nn.BCELoss() # _greg_
-# 		# print('AAAA', output.size(), y.size())
-# 		# y = torch.cat([y, y[-1].unsqueeze(0)], dim=0) # NOTE
-# 		loss = lossObj(output, y.unsqueeze(0).double())
-# 		if args.multiLoss:# or args.multiTest:
-# 			loss_body = lossObj(output_body, y.unsqueeze(0).double())
-# 			loss_hand = lossObj(output_hand, y.unsqueeze(0).double())
-# 			loss = loss + loss_body + loss_hand
-
-# 		total_loss += loss.item() # NOTE: ?
-# 		count += output.size(0)
-
-# 		if args.clip > 0:
-# 			torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
-
-# 		loss.backward()
-# 		optimizer.step()
-# 		if idx > 0 and idx % args.log_interval == 0:
-# 			cur_loss = total_loss / count
-# 			print("Epoch {:2d} | lr {:.5f} | loss {:.5f}".format(ep, lr, cur_loss))
-# 			total_loss = 0.0
-# 			count = 0
-
-# 		# EVALUATE
-# 		o = output.squeeze(0).cpu().detach()
-# 		y = y.cpu().detach()
-
-# 		if not args.rescaled:
-# 			oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=1, post_max=1) # madmom method
-# 			otimes = librosa.core.samples_to_time(oframes, sr=29.97) # predicted onest times
-# 		else:
-# 			oframes = peak_picking(activations=o[:,0].numpy(), threshold=0.5, pre_max=2, post_max=2) # madmom method
-# 			otimes = librosa.core.frames_to_time(oframes, sr=args.fs, hop_length=args.hop)
-
-# 		ground_truth=T_train[idx]
-
-# 		EvalObjects.append( onsets.OnsetEvaluation(otimes, ground_truth, window=args.onset_window) )
-
-# 	return EvalObjects
-
