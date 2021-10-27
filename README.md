@@ -49,6 +49,7 @@ If you don't want to bother with HandROIs (and their optical flow represntation)
 
 ```
 mkdir models
+mkdir imgs
 cd TCN/cross_val_av/
 python music_test.py
 ```

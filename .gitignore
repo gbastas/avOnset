@@ -2,5 +2,7 @@
 TCN/cross_val_av/.vscode
 OpenPoseData_all_hand
 KOLMOGOROV_COMMANDS.md
-extracted_features
-extracted_features_nooptflow
+PrepdData/extracted_features
+PrepdData/extracted_features_nooptflow
+imgs
+models
