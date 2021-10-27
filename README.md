@@ -1,5 +1,7 @@
 # avOnset
 
+This is the code for the article [Convolutional Networks for Visual Onset Detection in the Context of Bowed String Instrument Performances](https://zenodo.org/record/5043899).
+
 ## Set environment
 
 ```
@@ -42,9 +44,9 @@ mkdir PrepdData
 cd src/
 python data_prep_av_bulk.py --pathToStore ../prepdData/extracted_features --pathToURMP {path/to/URMPdataset} --audio_feats melspec -HandROIs -optflow
 ```
-If you don't want to bother with HandROIs (and their optical flow represntation) don't use the last two arguments. The script will run a lot faster and the space occupied in the disc will be smaller.
+If you don't want to bother with HandROIs (and their optical flow representation) don't use the last two arguments. The script will run a lot faster and the space occupied in the disc will be smaller.
 
-## How to run the model (Under Construction))
+## How to run the model
 
 
 ```
@@ -67,15 +69,11 @@ python music_test.py --epochs 100 --modality HandROIs --monofold False {-train}
 ```
 python music_test.py --epochs 200 --modality Visual --monofold False {-train}
 ```
-**Visual Fusion** (Under Construction) [use it after training models for the separate modalities]:
-```
-python music_test.py --epochs 10 --modality Body-Hand --monofold False {-train_fusion}
-```
-**Insights** [use it after training models for the separate modalities]:
+**Insights** (Under construction) [use it after training models for the separate modalities]:
 ```
 python music_test.py --modality Body-Hand --monofold False -multiTest
 ```
-**Audio**:
+[Extra:] **Audio**:
 ```
 python music_test.py --epochs 200 --modality Audio --monofold False -rescaled {-train}
 ```

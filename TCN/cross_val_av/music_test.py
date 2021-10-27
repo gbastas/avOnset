@@ -24,8 +24,7 @@ import librosa
 from model import TCN, TCN_fusion, TCN_Vis_fusion, CNN_TCN, TCN_Pix_Skltn_fusion
 from myutils import data_generator, fold_generator
 import fixedgutils
-from auxil import train, evaluate, fusion_train, fusion_evaluate, str2bool, plot_learning_curve
-# from auxil import train, evaluate, str2bool, plot_learning_curve
+from auxil import train, evaluate, str2bool, plot_learning_curve
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -139,13 +138,11 @@ def run_epoch(epoch, XFolds, YFolds, TFolds, FFolds, input_type, best_F_measure,
 		evalu = str(onsets.OnsetMeanEvaluation(eval_objects)).split()
 		precision, recall, F_measure = evalu[13], evalu[15], float(evalu[17])
 		print("Training_"+input_type+'_'+str(fold_id)+":\t Precision", precision, "\tRecall", recall, "F_measure", F_measure)
-		# train_scores += [F_measure]
 
 		vloss, eval_objects = evaluate(ep, X_valid, Y_valid, T_valid, args, extras[fold_id]['model'], input_type, fold_id, axs,  name='Validation', FNames=F_val)
 		evalu = str(onsets.OnsetMeanEvaluation(eval_objects)).split()
 		precision, recall, F_measure = evalu[13], evalu[15], float(evalu[17])
 		print("Validation_"+input_type+'_'+str(fold_id)+":\t Precision", precision, "\tRecall", recall, "\tF_measure", F_measure)
-		# valid_scores += [F_measure]
 
 		# Save best model so far
 		if F_measure > best_F_measure[fold_id] and args.store_model:
@@ -168,8 +165,6 @@ def run_epoch(epoch, XFolds, YFolds, TFolds, FFolds, input_type, best_F_measure,
 
 def run_fusion_epoch(epoch, XAFolds, YAFolds, TAFolds, XBFolds, FFolds, input_type, best_F_measure, extras):
 	global imgpath
-	# train_fusion_scores, valid_fusion_scores = 0, 0
-	# NOTE: no YBFolds, TBFolds are used (only 'A')
 	for fold_id, (AFolds, BFolds) in enumerate( zip(fold_generator(args, XAFolds, YAFolds, TAFolds, FFolds), fold_generator(args, XBFolds, YAFolds, TAFolds, FFolds)) ):	
 		if fold_id>Nf: continue # NOTE:
 
@@ -187,13 +182,11 @@ def run_fusion_epoch(epoch, XAFolds, YAFolds, TAFolds, XBFolds, FFolds, input_ty
 		print("Training: Precision", precision, "Recall", recall, "F_measure", F_measure)
 
 		vloss, eval_objects = fusion_evaluate(ep, X_A_valid, X_B_valid, Y_valid, T_valid, args, extras[fold_id]['model'], fold_id, axs=axs, name='Validation', FNames=F_val)
-		# vloss, eval_objects = fusion_evaluate(ep, X_A_valid, X_B_valid, Y_valid, T_valid, args, extras[fold_id]['model'], fold_id, fig=fig, axs=axs, name='Validation')
 		evalu = str(onsets.OnsetMeanEvaluation(eval_objects)).split()
 		precision, recall, F_measure = evalu[13], evalu[15], float(evalu[17])
 		print("Validation: Precision", precision, "Recall", recall, "F_measure", F_measure)
 
 		# Save best model so far
-		# TODO: try vloss criterions
 		if F_measure >= best_F_measure[fold_id] and args.store_model:
 			model = extras[fold_id]['model']
 			with open(model_name, "wb") as f:
@@ -202,15 +195,12 @@ def run_fusion_epoch(epoch, XAFolds, YAFolds, TAFolds, XBFolds, FFolds, input_ty
 
 		print("************ Test_Vis_Fusion_"+str(fold_id)+" ************")
 		tloss, eval_objects = fusion_evaluate(ep, X_A_test, X_B_test, Y_test, T_test, args, extras[fold_id]['model'], fold_id, axs=axs, name='Test', FNames=F_test)
-		# tloss, eval_objects = fusion_evaluate(ep, X_A_test, X_B_test, Y_test, T_test, args, extras[fold_id]['model'], fold_id, fig=fig, axs=axs, name='Test', FNames=F_test)
 		evalu = str(onsets.OnsetMeanEvaluation(eval_objects)).split()
 		precision, recall, F_measure = evalu[13], evalu[15], float(evalu[17])
 		print("Test:\t Precision", precision, "\tRecall", recall, "\tF_measure", F_measure)
 		print()
 
 		fig.suptitle("TCN_Vis_Fusion_"+str(fold_id)+": Precision"+str(precision)+"\tRecall"+str(recall)+str("\tF_measure")+str(F_measure), fontsize=16)	
-		# fig.savefig('./img/img_fusion_'+str(ep)+'_'+str(fold_id)+'.png')
-		# print(imgpath+'img_'+input_type+'_'+str(ep)+'_'+str(fold_id)+'.png')
 		fig.savefig(imgpath+'img_'+args.modality+'_'+str(ep)+'_'+str(fold_id)+'.png')
 		plt.close(fig)			
 
@@ -291,7 +281,6 @@ def run_fusion_final_test(args, XAFolds, YAFolds, TAFolds, XBFolds, FFolds, extr
 			r_m += float(recall)
 			F_m += float(F_measure)
 				
-		# print("Average: Precision"+str(precision)+"\tRecall"+str(recall)+str("\tF_measure")+str(F_measure))	
 		print("Average: Precision "+str(round(p_m/args.n_folds,3))+"\tRecall "+str(round(r_m/args.n_folds, 3))+str("\tF_measure ")+str(round(F_m/args.n_folds, 3)))	
 
 		writer.writerow(["Average"])
@@ -320,8 +309,6 @@ def run_final_test(args, XFolds, YFolds, TFolds, FFolds, optimizer, input_type):
 			model = torch.load(open(model_name, "rb"))
 
 			tloss, eval_objects = evaluate(None, X_test, Y_test, T_test, args, model, input_type, fold_id, axs, name='FinalTest_'+str(fold_id), FNames=F_test, writer=writer)
-
-			# print(eval_objects)
 
 			evalu = str(onsets.OnsetMeanEvaluation(eval_objects)).split()
 			precision, recall, F_measure = evalu[13], evalu[15], evalu[17]
@@ -353,8 +340,6 @@ if __name__ == "__main__":
 
 	imgpath = args.project_dir+ 'imgs/'
 	args.project_dir += 'PrepdData/' + args.feats_dir + '/' #NOTE important to handle e.g. DATAchormas etc.
-	# args.project_dir += args.feats + '/' #NOTE important to handle e.g. DATAchormas etc.
-	# args.project_dir += 'PrepdData/' + args.feats + '_badimg/' #NOTE important to handle e.g. DATAchormas etc.
 	
 	# Set the random seed manually for reproducibility.
 	torch.manual_seed(args.seed)
@@ -376,28 +361,12 @@ if __name__ == "__main__":
 
 	if args.modality in ['Visual', 'AudioVisual', 'Body-Hand']:
 		XVisFolds, YVisFolds, TVisFolds, FFolds = data_generator(args, "Visual")	# (fold_id, track_id, time_bin, feature_iid)
-		# XVisFolds, YVisFolds, TVisFolds, FFolds = data_generator(args, "Visual", frames_to_rescale=n_audio_frames)	# (fold_id, track_id, time_bin, feature_iid)
-	# print(type(XVisFolds[0][0]), XVisFolds[0][0].shape)
-
-	# XpcaFolds, _, _, _ = data_generator(args, "PCA")	# (fold_id, track_id, time_bin, feature_iid)
-	# print(type(XpcaFolds[0][0]), XpcaFolds[0][0].shape)
-	# for i in range(len(XVisFolds)):
-	# 	for j in range(len(XVisFolds[i])):
-	# 		print(i,j)
-	# 		print(XVisFolds[i][j])
-	# 		print(XpcaFolds[i][j])
-	# 		XVisFolds[i][j] = torch.cat((XVisFolds[i][j], XpcaFolds[i][j]), dim=1)
-	# print('AAAA', XVisFolds[0][0].shape)
-
-	
 
 	if args.modality == "Hand":
 		XHandFolds, _, _, _ = data_generator(args, "Hand")
-		# print(type(XHandFolds[0][0]))
 
 	if args.modality == "HandROIs" or args.modality == "Body-Hand":
 		XPixFolds, YPixFolds, TPixFolds, FPixFolds = data_generator(args, "HandROIs") # foldID x sample x torch.Size([n_frames, 100, 100, 3])
-		# print('AAAA', XPixFolds[0][0].shape)
 
 
 	# NOTE:
@@ -410,26 +379,17 @@ if __name__ == "__main__":
 	if args.modality == "Hand":
 		XVisFolds = XHandFolds
 
-	# print(type(XVisFolds[0][0]))
 
 	print()
-	# print('XVisShape:', len(XVisFolds), len(XVisFolds[0]))
-
-	# TODO: We probably don't need YAudFolds and TAudFolds. Just check if they are equal with the corresponding 'Vis'.
-
-	# XPixFold, YPixFold, TPixFold, _ = data_generator(args, "Pixel")
-
 	# Feat Size
 	if args.modality in ['Visual', 'AudioVisual', 'Body-Hand']: visual_input_size = XVisFolds[0][0].shape[1] # e.g 66a
 	if args.modality == "Hand": hand_input_size = XHandFolds[0][0].shape[1] # e.g. 126
 	if args.modality in ['Audio', 'AudioVisual']: audio_input_size = XAudFolds[0][0].shape[1] # e.g. 40
-	# audio_input_size = XPixFolds[0][0].shape[1]  # e.g.
 
 	print()
 	if args.modality in ['Visual', 'AudioVisual']: print("visual_input_size", visual_input_size)
 	if args.modality == "Hand": print("hand_input_size", hand_input_size)
 	if args.modality in ['Audio', 'AudioVisual']: print("audio_input_size", audio_input_size)
-	# print("audio_input_size", XPixFolds[0][0].shape)
 	print()
 
 	# Some hyperparameters
@@ -487,7 +447,6 @@ if __name__ == "__main__":
 			if args.modality in ['Visual', 'AudioVisual']: # TODO: fixed if args.rescaled for baf
 				if args.rescaled: YVisFolds = YAudFolds
 				run_epoch(ep, XVisFolds, YVisFolds, TVisFolds, FFolds, 'Visual', best_visual_F_measure, extras_visual)
-				# run_epoch(ep, XVisFolds, YPixFolds, TVisFolds, FFolds, 'Visual', best_visual_F_measure, extras_visual) 
 
 			if args.modality == 'Hand':
 				run_epoch(ep, XVisFolds, YVisFolds, TVisFolds, FFolds, 'Hand', best_visual_F_measure, extras_visual)
@@ -496,14 +455,11 @@ if __name__ == "__main__":
 				run_epoch(ep, XPixFolds, YPixFolds, TPixFolds, FPixFolds, 'HandROIs', best_pixel_F_measure, extras_pixel)
 
 			if args.modality == 'Body-Hand':
-				# run_fusion_epoch(ep, XVisFolds, YVisFolds, TVisFolds, XHandFolds, FFolds, 'Body-Hand', best_visual_F_measure, extras_visual)
 				run_fusion_epoch(ep, XVisFolds, YPixFolds, TPixFolds, XPixFolds, FFolds, 'Body-Hand', best_visual_F_measure, extras_pixel)
 
 			################################## AUDIO #######################################
 			if args.modality in ['Audio', 'AudioVisual']:
 				run_epoch(ep, XAudFolds, YAudFolds, TAudFolds, FFolds, 'Audio', best_audio_F_measure, extras_audio)
-				# run_epoch(ep, XAudFolds, YAudFolds, TAudFolds, FFolds, 'AudioSNRm10', best_audio_F_measure, extras_audio)
-				#run_epoch(ep, XAudFolds, YAudFolds, TAudFolds, FFolds, 'AudioSNR0', best_audio_F_measure, extras_audio)
 				
 	################################## VISUAL Final Test #######################################
 	if args.modality in ['Visual', 'AudioVisual']:
@@ -511,58 +467,11 @@ if __name__ == "__main__":
 		run_final_test(args, XVisFolds, YVisFolds, TVisFolds, FFolds, visual_optimizer, 'Visual') 
 	if args.modality == 'Hand':
 		run_final_test(args, XVisFolds, YVisFolds, TVisFolds, FFolds, visual_optimizer, 'Hand')
-	# if args.modality == 'Body-Hand':
-	# 	# run_fusion_final_test()
-	# 	run_fusion_final_test(args, XVisFolds, YVisFolds, TVisFolds, XHandFolds, FFolds) 
+	if args.modality == 'Body-Hand':
+		run_fusion_final_test(args, XVisFolds, YVisFolds, TVisFolds, XHandFolds, FFolds) 
 	if args.modality == "HandROIs":
 		run_final_test(args, XPixFolds, YPixFolds, TPixFolds, FPixFolds, pixel_optimizer, 'HandROIs')		
 	################################## AUDIO Final Test  #######################################
 	if args.modality in ['Audio', 'AudioVisual']:
 		run_final_test(args, XAudFolds, YAudFolds, TAudFolds, FFolds, audio_optimizer, 'Audio')			
-
-
-	# FUSION MODEL INITIALIZATION
-	if args.modality not in ['Body-Hand', 'AudioVisual']:
-		exit(0)
-	extras_fusion=[]
-	for fold_id in range(args.n_folds):
-		if fold_id>Nf: continue #NOTE:
-
-		A_model_name = args.model_dir+'TCN_Visual_'+str(fold_id)+'.pt'
-		B_model_name = args.model_dir+'TCN_Audio_'+str(fold_id)+'.pt'
-		if args.modality == 'Body-Hand': B_model_name = args.model_dir+'TCN_HandROIs_'+str(fold_id)+'.pt' # TODO: cope with names
-
-
-		# if args.multiTest:
-		# 	run_final_test
-
-		if args.modality == 'Body-Hand':
-			fusion_model = TCN_fusion(args, visual_input_size, None, A_model_name, B_model_name, output_size, n_visual_channels, n_hand_channels, kernel_size, dropout=args.dropout, dilations=args.dilations)
-		elif args.modality == 'AudioVisual':
-			fusion_model = TCN_fusion(args, visual_input_size, audio_input_size, A_model_name, B_model_name, output_size, n_visual_channels, n_audio_channels, kernel_size, dropout=args.dropout, dilations=args.dilations)
-
-		# TCN_Pix_Skltn_fusion(args, visual_input_size, visual_model_name, pixel_model_name, output_size, n_visual_channels, n_hand_channels, kernel_size, dropout=args.dropout, dilations=args.dilations)
-		# fusion_model = TCN_Vis_fusion(args, visual_input_size, audio_input_size, visual_model_name, audio_model_name, output_size, n_visual_channels, n_audio_channels, kernel_size, dropout=args.dropout, dilations=args.dilations)
-
-		if args.cuda: fusion_model.cuda()
-
-		fusion_optimizer = getattr(optim, args.optim)(fusion_model.parameters(), lr=lr)
-		extras_fusion += [{'model':fusion_model, 'lr':lr, 'optimizer':fusion_optimizer}]
-
-	best_F_measure = [-0.1] * args.n_folds
-
-	if args.train_fusion:
-		for ep in range(1, args.epochs+1):
-			print('Fusion epoch:', ep)
-			if args.modality == 'Body-Hand':
-				run_fusion_epoch(ep, XVisFolds, YVisFolds, TVisFolds, XPixFolds, FFolds, args.modality, best_visual_F_measure, extras_fusion)
-			else:
-				# run_fusion_epoch(ep, XVisFolds, YVisFolds, TVisFolds, XAudFolds, FFolds, 'AudioVisual', best_visual_F_measure, extras_fusion)
-				run_fusion_epoch(ep, XVisFolds, YAudFolds, TAudFolds, XAudFolds, FFolds, 'AudioVisual', best_visual_F_measure, extras_fusion)
-
-	# if args.multiTest:
-	# 	run_multiTest(args, XVisFolds, YVisFolds, TVisFolds, XPixFolds, FFolds, [A_model_name, B_model_name])
-
-	# run_fusion_final_test(args, XVisFolds, YVisFolds, TVisFolds, XAudFolds, FFolds, extras_fusion) 
-	run_fusion_final_test(args, XVisFolds, YVisFolds, TVisFolds, XPixFolds, FFolds, extras_fusion) 
 
