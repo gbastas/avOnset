@@ -52,7 +52,7 @@ mkdir models
 mkdir imgs
 mkdir results
 cd TCN/cross_val_av/
-'''
+```
 
 
 For each different input configuration, you can choose to train a TCN network (one for each cross-validation fold set if you use argument ```--monofold False```) by using the argument ```-train```. The models will be stored to ```./models``` dir.
@@ -60,17 +60,17 @@ For each different input configuration, you can choose to train a TCN network (o
 
 
 HandROIs:
-'''
+```
 python music_test.py --epochs 100 --modality HandROIs --monofold False {-train}
-'''
+```
 Visual:
-'''
+```
 python music_test.py --epochs 200 --modality Visual --monofold False {-train}
-'''
+```
 Visual Fusion (Under Construction) [use it after training in the separate modalities]:
-'''
+```
 python music_test.py --epochs 10 --modality Body-Hand --monofold False {-train_fusion}
-'''
+```
 Insights:
 ```
 python music_test.py --modality Body-Hand --monofold False -multiTest
