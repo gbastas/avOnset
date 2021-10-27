@@ -79,3 +79,9 @@ python music_test.py --modality Body-Hand --monofold False -multiTest
 ```
 python music_test.py --epochs 200 --modality Audio --monofold False -rescaled {-train}
 ```
+
+
+## Demo
+
+For audio onset detection (trained on URMP string performances), upload a ```.wav``` file.
+https://apps.ilsp.gr:5006/onsets/
