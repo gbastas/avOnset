@@ -63,23 +63,23 @@ For each different input configuration, you can choose to train a TCN network (o
 ```
 python music_test.py --epochs 100 --modality HandROIs --monofold False {-train}
 ```
-Visual:
+**Visual**:
 ```
 python music_test.py --epochs 200 --modality Visual --monofold False {-train}
 ```
-Visual Fusion (Under Construction) [use it after training in the separate modalities]:
+**Visual Fusion** (Under Construction) [use it after training in the separate modalities]:
 ```
 python music_test.py --epochs 10 --modality Body-Hand --monofold False {-train_fusion}
 ```
-Insights:
+**Insights** [use it after training in the separate modalities]:
 ```
 python music_test.py --modality Body-Hand --monofold False -multiTest
 ```
-Audio:
+**Audio**:
 ```
 python music_test.py --epochs 200 --modality Audio --monofold False -rescaled {-train}
 ```
-AudioVisual (Under Construction) [use it after training in the separate modalities]:
+**AudioVisual** (Under Construction) [use it after training in the separate modalities]:
 ```
 python music_test.py --epochs 200 --modality AudioVisual --monofold False -rescaled {-train}
 ```
