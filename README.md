@@ -67,7 +67,7 @@ Visual:
 '''
 python music_test.py --epochs 200 --modality Visual --monofold False {-train}
 '''
-Fusion:
+Visual Fusion:
 '''
 python music_test.py --epochs 10 --modality Body-Hand --monofold False {-train_fusion}
 '''
@@ -77,5 +77,5 @@ python music_test.py --modality Body-Hand --monofold False -multiTest
 ```
 Audio:
 ```
-python music_test.py --epochs 200 --modality Audio --monofold False -train
+python music_test.py --epochs 200 --modality Audio --monofold False -rescale {-train}
 ```
