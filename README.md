@@ -59,7 +59,7 @@ For each different input configuration, you can choose to train a TCN network (o
 
 
 
-HandROIs:
+**HandROIs**:
 ```
 python music_test.py --epochs 100 --modality HandROIs --monofold False {-train}
 ```
