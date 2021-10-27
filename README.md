@@ -67,15 +67,11 @@ python music_test.py --epochs 100 --modality HandROIs --monofold False {-train}
 ```
 python music_test.py --epochs 200 --modality Visual --monofold False {-train}
 ```
-**Visual Fusion** (Under Construction) [use it after training models for the separate modalities]:
-```
-python music_test.py --epochs 10 --modality Body-Hand --monofold False {-train_fusion}
-```
-**Insights** [use it after training models for the separate modalities]:
+**Insights** (Under construction) [use it after training models for the separate modalities]:
 ```
 python music_test.py --modality Body-Hand --monofold False -multiTest
 ```
-**Audio**:
+[Extra:] **Audio**:
 ```
 python music_test.py --epochs 200 --modality Audio --monofold False -rescaled {-train}
 ```
