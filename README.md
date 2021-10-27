@@ -77,5 +77,5 @@ python music_test.py --modality Body-Hand --monofold False -multiTest
 ```
 Audio:
 ```
-python music_test.py --epochs 200 --modality Audio --monofold False -rescale {-train}
+python music_test.py --epochs 200 --modality Audio --monofold False -rescaled {-train}
 ```
