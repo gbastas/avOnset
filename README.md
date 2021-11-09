@@ -22,6 +22,11 @@ Then you can download the readily extracted skeleton data from here:
 https://imisathena-my.sharepoint.com/:u:/g/personal/g_bastas_athenarc_gr/ERD4ZZ0iPuVPkGRnIWC1qd4BPYoxCj3NSg2qJBPTUiyFBw?e=G0KzVj
 ```
 
+Crop the videos in order to ensure videos of one-instrument performances:
+```
+yes | python src/crop_videos.py --pathToData "path/to/URMPdataset"
+```
+
 ## D.I.Y. (documentation Under Construction)
 
 
