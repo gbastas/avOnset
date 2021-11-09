@@ -17,29 +17,23 @@ First you need to download the whole URMP dataset (this might take some time...)
 www2.ece.rochester.edu/projects/air/projects/URMP.html
 ```
 
-Then you can download the readily extracted skeleton data from here:
-```
-https://imisathena-my.sharepoint.com/:u:/g/personal/g_bastas_athenarc_gr/ERD4ZZ0iPuVPkGRnIWC1qd4BPYoxCj3NSg2qJBPTUiyFBw?e=G0KzVj
-```
-
 Crop the videos in order to ensure videos of one-instrument performances:
 ```
 yes | python src/crop_videos.py --pathToData "path/to/URMPdataset"
 ```
 
-## D.I.Y. (documentation Under Construction)
-
-
-<!-- If you want to extract the skeletons yourself, you need to dowload OpenPose and run it for each multi-instrument video-performance. This is easier to achieve from Windows os. First, we download openpose from this link https://github.com/CMU-Perceptual-Computing-Lab/openpose/releases and we run openpose/models/getModels.bat. Next we run ```openpose/bin/OpenPoseDemo.exe``` for multiple videos using the script below (run inside the ```openpose/``` dir) to get the poses in the form of json files and videos:
-
+Then you can download the readily extracted skeleton data from here:
 ```
-python path\to\avOnset\src\run_multiple_openpose.py --pathToData path\to\dataset --poly {True,False}
+https://imisathena-my.sharepoint.com/:u:/g/personal/g_bastas_athenarc_gr/ERD4ZZ0iPuVPkGRnIWC1qd4BPYoxCj3NSg2qJBPTUiyFBw?e=G0KzVj
 ```
 
-Then run:
+If you want to extract the skeletons yourself, you need to dowload OpenPose and run it for each multi-instrument video-performance. This is easier to achieve from Windows OS. 
+<!-- First, we download openpose from this link https://github.com/CMU-Perceptual-Computing-Lab/openpose/releases and we  -->
+First run ```openpose/models/getModels.bat```. Next run ```openpose/bin/OpenPoseDemo.exe``` for multiple videos using the script below (run it inside the ```openpose/``` dir) to get the poses in the form of json files and videos:
+
 ```
-python crop_videos.py --pathToData path/to/data
-``` -->
+python path\to\avOnset\src\run_multiple_openpose.py --pathToData path\to\dataset --poly False
+```
 
 
 ## Feature extraction

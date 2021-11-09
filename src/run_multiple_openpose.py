@@ -79,10 +79,6 @@ def main(parameters):
 			if filename.endswith(type_of_files_to_parse):
 				path_to_src_file = path_to_data+subdir+'/'+filename
 				print(path_to_src_file) 
-				# subprocess.run(["C:/Users/g.bastas/openpose/bin/OpenPoseDemo.exe","--video",path_to_src_file,"--write_json","C:/Users/g.bastas/openpose/MyOutputData/"+filename],capture_output=True)
-				# subprocess.run(["bin/OpenPoseDemo.exe","--video",path_to_src_file,"--write_json","C:/Users/g.bastas/openpose/MyOutputData/"+filename],capture_output=True)
-				# subprocess.run(["C:/Users/g.bastas/Downloads/openpose-1.5.1-binaries-win64-gpu-python-flir-3d_recommended/openpose/bin/OpenPoseDemo.exe","--video",path_to_src_file,"--write_json",path_to_store+filename.split('.')[0],"--write_video",path_to_store+filename.split('.')[0]+filename.split('.')[0]+'.avi'])#,capture_output=True)
-				# subprocess.run(["C:/Users/g.bastas/openpose/bin/OpenPoseDemo.exe","--video",path_to_src_file,"--write_json",path_to_store+filename.split('.')[0],"--write_video",path_to_store+filename.split('.')[0]+filename.split('.')[0]+'.avi'])#,capture_output=True)
 				toRun = ["C:/Users/g.bastas/openpose/bin/OpenPoseDemo.exe","--video",path_to_src_file,
 								"--write_json",path_to_store+filename.split('.')[0],
 								"--write_video",path_to_store+filename.split('.')[0]+'.avi']
@@ -95,21 +91,12 @@ def main(parameters):
 
 				subprocess.run(toRun)
 
-
-				# subprocess.run(["C:/Users/g.bastas/openpose/bin/OpenPoseDemo.exe","--video",path_to_src_file,
-				# 				"--write_json",path_to_store+filename.split('.')[0],
-				# 				"--write_video",path_to_store+filename.split('.')[0]+'.avi',
-				# 				"--hand",
-				# 				"--hand_scale_number", '6', 
-				# 				"--hand_scale_range", '0.4',								
-				# 				"--hand_detector", '3'])#, 
-								# "--keypoint_scale", '4']) # https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/demo_overview.md
-			
+		
 
 if __name__ == '__main__':
 	# Set up command-line argument parsing
 	parser = argparse.ArgumentParser(
-		description='E.g. (av) python path/to/run_multiple_openpose.py --pathToData "D:/users/grigoris/Datasets/uc3/Dataset/" --poly False # NOTE: need to correct to get instrument specific names  ',
+		description='E.g. (av) python path/to/run_multiple_openpose.py --pathToData "D:/users/grigoris/Datasets/uc3/Dataset/"',
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 	parser.add_argument('--pathToData', help='Path to the dataset')
