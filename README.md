@@ -1,6 +1,7 @@
 # avOnset
 
 This is the code for the article [Convolutional Networks for Visual Onset Detection in the Context of Bowed String Instrument Performances](https://zenodo.org/record/5043899).
+Here you can find a video of the presentation: https://www.youtube.com/watch?v=hw1kfNVuHU0.
 
 ## Set environment
 
