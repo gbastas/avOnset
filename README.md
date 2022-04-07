@@ -92,3 +92,6 @@ Then upload the corresponding one-instrument recorded video performance (.mkv or
 A waveform and a video should appear.
 Click **Video Onset Dection** to visualize predicted onsets from the audio/video-based pre-trained model.
 
+<p align="center">
+    <img src="output.gif" width="400">
+</p>
